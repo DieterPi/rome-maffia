@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Operazione Moro — Roma 1978</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -160,7 +163,7 @@
     position: relative;
   }
   .arrow-ring::before { content: ''; position: absolute; inset: 12px; border-radius: 50%; border: 1px dashed rgba(107,76,30,0.4); }
-  .arrow-ring::after { content: 'N'; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); font-family: 'Special Elite', cursive; font-size: 0.8rem; color: var(--red); opacity: 0.7; }
+  .arrow-ring::after { content: ''; }
   .arrow-rotate { transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; align-items: center; justify-content: center; }
   .nav-arrow {
     width: 0; height: 0;
@@ -263,6 +266,15 @@
   </div>
 </div>
 
+<script>
+  // Request fullscreen on first interaction (browsers require user gesture)
+  document.addEventListener('click', function requestFS() {
+    const el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    document.removeEventListener('click', requestFS);
+  }, { once: true });
+</script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -363,7 +375,7 @@
       </div>
       <div class="compass-container" id="compass-ui" style="display:none;">
         <div class="distance-display">
-          <div class="distance-label">Afstand tot doelwit</div>
+          <div class="distance-label">Afstand tot bewijsmateriaal</div>
           <div class="distance-value" id="dist-val">—</div>
           <div class="distance-unit-label" id="dist-unit">GPS verbinding zoeken...</div>
           <div class="accuracy-bar-wrap" id="accuracy-wrap" style="display:none;">
@@ -484,14 +496,22 @@
 
     const distVal = document.getElementById('dist-val');
     const distUnit = document.getElementById('dist-unit');
-    if (distVal) { distVal.textContent = dist >= 1000 ? (dist/1000).toFixed(2) : Math.round(dist); distUnit.textContent = dist >= 1000 ? 'kilometer' : 'meter'; }
+    if (distVal) {
+      if (dist >= 1000) {
+        distVal.textContent = (dist/1000).toFixed(2);
+        distUnit.textContent = 'kilometer';
+      } else {
+        distVal.textContent = Math.round(dist);
+        distUnit.textContent = 'meter';
+      }
+    }
 
     const arrow = document.getElementById('arrow-rotate');
     if (arrow) arrow.style.transform = `rotate(${deviceHeading !== null ? bear - deviceHeading : bear}deg)`;
 
     const status = document.getElementById('compass-status');
     if (status) {
-      status.textContent = deviceHeading !== null ? '✓ Volg de pijl naar het doelwit' : '⚠ Geen kompas — beweeg voor richting';
+      status.textContent = deviceHeading !== null ? '✓ Stap in deze richting' : '⚠ Geen kompas — beweeg voor richting';
       status.style.color = 'var(--muted)';
     }
 
