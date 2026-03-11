@@ -124,9 +124,24 @@
     border-right: 18px solid transparent;
     border-top: 55px solid rgba(0,229,160,0.25);
   }
+  .accuracy-bar-wrap { margin-top: 1rem; }
+  .accuracy-label {
+    display: flex; justify-content: space-between;
+    font-size: 0.68rem; font-family: 'Space Mono', monospace;
+    color: var(--muted); margin-bottom: 0.4rem;
+  }
+  .accuracy-track {
+    height: 6px; background: var(--surface2);
+    border-radius: 3px; overflow: hidden;
+  }
+  .accuracy-fill {
+    height: 100%; border-radius: 3px;
+    transition: width 0.5s ease, background-color 0.5s ease;
+    width: 0%;
+  }
   .arrow-hint {
     font-size: 0.72rem; font-family: 'Space Mono', monospace;
-    color: var(--muted); text-align: center; max-width: 220px; line-height: 1.5;
+    color: var(--muted); text-align: center; max-width: 240px; line-height: 1.5;
   }
 
   .compass-status { font-size: 0.75rem; font-family: 'Space Mono', monospace; color: var(--muted); text-align: center; }
@@ -301,6 +316,15 @@
           <div class="distance-label">Afstand tot bestemming</div>
           <div class="distance-value" id="dist-val">—</div>
           <div style="color:var(--muted);font-family:'Space Mono',monospace;font-size:0.8rem;" id="dist-unit">wachten op GPS...</div>
+          <div class="accuracy-bar-wrap" id="accuracy-wrap" style="display:none;">
+            <div class="accuracy-label">
+              <span>GPS signaal</span>
+              <span id="accuracy-text">—</span>
+            </div>
+            <div class="accuracy-track">
+              <div class="accuracy-fill" id="accuracy-fill"></div>
+            </div>
+          </div>
         </div>
         <div class="arrow-wrapper">
           <div class="arrow-ring">
@@ -334,26 +358,60 @@
     return (Math.atan2(y,x)*180/Math.PI+360)%360;
   }
 
+  // ── GPS state for interpolation ──
+  let gpsLat = null, gpsLng = null;          // last real GPS fix
+  let prevLat = null, prevLng = null;        // fix before that
+  let gpsTimestamp = null;                   // when last fix arrived
+  let gpsSpeed = 0;                          // m/s from GPS
+  let gpsBearing = null;                     // movement direction from GPS
+  let gpsAccuracy = null;
+  let interpFrame = null;
+
   function startTracking() {
     if (!navigator.geolocation) return;
+
     watchId = navigator.geolocation.watchPosition(pos => {
-      currentLat = pos.coords.latitude;
-      currentLng = pos.coords.longitude;
-      // Use GPS heading if available and moving
-      if (pos.coords.heading !== null && pos.coords.speed > 0.5) {
-        deviceHeading = pos.coords.heading;
+      const newLat = pos.coords.latitude;
+      const newLng = pos.coords.longitude;
+      gpsAccuracy = pos.coords.accuracy;
+
+      // Derive speed & bearing from consecutive fixes if GPS doesn't provide them
+      if (gpsLat !== null) {
+        const dt = (pos.timestamp - gpsTimestamp) / 1000; // seconds
+        if (dt > 0) {
+          const d = haversine(gpsLat, gpsLng, newLat, newLng);
+          gpsSpeed = d / dt; // m/s
+          if (d > 1) gpsBearing = bearing(gpsLat, gpsLng, newLat, newLng);
+        }
       }
+
+      // Use device heading/speed if available
+      if (pos.coords.heading !== null && !isNaN(pos.coords.heading) && pos.coords.speed > 0.3) {
+        deviceHeading = pos.coords.heading;
+        gpsBearing = pos.coords.heading;
+        gpsSpeed = pos.coords.speed;
+      }
+
+      prevLat = gpsLat; prevLng = gpsLng;
+      gpsLat = newLat; gpsLng = newLng;
+      gpsTimestamp = pos.timestamp;
+      currentLat = gpsLat; currentLng = gpsLng;
+
+      updateAccuracyUI();
       updateCompassUI();
+      startInterpolation();
+
     }, err => {
       const s = document.getElementById('compass-status');
       if (s) { s.textContent = '✗ GPS fout: ' + err.message; s.style.color = 'var(--danger)'; }
     }, { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 });
 
+    // Device orientation for compass heading
     const handler = e => {
       if (e.webkitCompassHeading !== undefined && e.webkitCompassHeading !== null) {
-        deviceHeading = e.webkitCompassHeading; // iOS: already absolute
+        deviceHeading = e.webkitCompassHeading;
       } else if (e.absolute && e.alpha !== null) {
-        deviceHeading = (360 - e.alpha) % 360; // Android absolute
+        deviceHeading = (360 - e.alpha) % 360;
       }
       updateCompassUI();
     };
@@ -365,9 +423,62 @@
     }
   }
 
+  // Interpolate position between GPS fixes using last known speed + direction
+  function startInterpolation() {
+    if (interpFrame) cancelAnimationFrame(interpFrame);
+    const step = () => {
+      if (!gpsLat || !gpsBearing || gpsSpeed < 0.3) return; // not moving, skip
+      const age = (Date.now() - gpsTimestamp) / 1000; // seconds since last fix
+      if (age > 8) return; // too old, stop interpolating
+
+      // Project position forward
+      const R = 6371000;
+      const d = gpsSpeed * age;
+      const bearRad = deg2rad(gpsBearing);
+      const latRad = deg2rad(gpsLat);
+      const lngRad = deg2rad(gpsLng);
+      const newLatRad = Math.asin(Math.sin(latRad)*Math.cos(d/R) + Math.cos(latRad)*Math.sin(d/R)*Math.cos(bearRad));
+      const newLngRad = lngRad + Math.atan2(Math.sin(bearRad)*Math.sin(d/R)*Math.cos(latRad), Math.cos(d/R)-Math.sin(latRad)*Math.sin(newLatRad));
+      currentLat = newLatRad * 180 / Math.PI;
+      currentLng = newLngRad * 180 / Math.PI;
+
+      updateCompassUI();
+      interpFrame = requestAnimationFrame(step);
+    };
+    interpFrame = requestAnimationFrame(step);
+  }
+
+  function updateAccuracyUI() {
+    const wrap = document.getElementById('accuracy-wrap');
+    const fill = document.getElementById('accuracy-fill');
+    const text = document.getElementById('accuracy-text');
+    if (!wrap || !fill || !text || gpsAccuracy === null) return;
+    wrap.style.display = 'block';
+
+    // accuracy in meters: lower = better. Map 3m–50m to 100%–0%
+    const pct = Math.max(0, Math.min(100, 100 - ((gpsAccuracy - 3) / 47) * 100));
+    fill.style.width = pct + '%';
+
+    if (gpsAccuracy <= 8) {
+      fill.style.backgroundColor = 'var(--accent)';
+      text.textContent = `Uitstekend (±${Math.round(gpsAccuracy)}m)`;
+      text.style.color = 'var(--accent)';
+    } else if (gpsAccuracy <= 20) {
+      fill.style.backgroundColor = '#f0c040';
+      text.textContent = `Goed (±${Math.round(gpsAccuracy)}m)`;
+      text.style.color = '#f0c040';
+    } else {
+      fill.style.backgroundColor = 'var(--danger)';
+      text.textContent = `Zwak (±${Math.round(gpsAccuracy)}m)`;
+      text.style.color = 'var(--danger)';
+    }
+  }
+
   function stopTracking() {
     if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+    if (interpFrame) { cancelAnimationFrame(interpFrame); interpFrame = null; }
     deviceHeading = null; currentLat = null; currentLng = null;
+    gpsLat = null; gpsLng = null; gpsTimestamp = null; gpsSpeed = 0; gpsBearing = null;
   }
 
   function updateCompassUI() {
@@ -384,7 +495,7 @@
       distUnit.textContent = dist >= 1000 ? 'kilometer' : 'meter';
     }
 
-    // Arrow: rotate so it points toward destination relative to where device faces
+    // Arrow
     const arrow = document.getElementById('arrow-rotate');
     if (arrow) {
       const rotation = deviceHeading !== null ? bear - deviceHeading : bear;
@@ -398,7 +509,7 @@
         status.textContent = '✓ Volg de pijl naar de bestemming';
         status.style.color = 'var(--accent)';
       } else {
-        status.textContent = '⚠ Geen kompas beschikbaar — beweeg je toestel voor een GPS-richting';
+        status.textContent = '⚠ Geen kompas — beweeg je toestel voor richting';
         status.style.color = 'var(--muted)';
       }
     }
