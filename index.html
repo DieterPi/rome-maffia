@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPS Opdrachten</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #181c27;
+    --surface2: #1f2436;
+    --border: #2a3050;
+    --accent: #00e5a0;
+    --text: #e8eaf2;
+    --muted: #6b7498;
+    --danger: #ff4757;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Syne', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  header {
+    padding: 1.2rem 2rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    text-align: center;
+  }
+  .logo { font-size: 1.4rem; font-weight: 800; }
+  .logo span { color: var(--accent); }
+
+  .student-layout { max-width: 600px; margin: 0 auto; padding: 1.5rem; }
+
+  .student-header { text-align: center; margin-bottom: 2rem; margin-top: 1rem; }
+  .student-header h2 { font-size: 1.6rem; font-weight: 800; }
+  .student-header p { color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.78rem; margin-top: 0.4rem; }
+
+  .assignment-grid { display: grid; gap: 1rem; }
+
+  .student-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+  }
+  .student-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,229,160,0.08); }
+  .student-num {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, var(--accent) 0%, #00b37a 100%);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 1.1rem; font-weight: 700; color: var(--bg); flex-shrink: 0;
+  }
+  .student-card-info { flex: 1; }
+  .student-card-name { font-size: 1.05rem; font-weight: 700; }
+  .student-card-desc { font-size: 0.8rem; color: var(--muted); margin-top: 0.3rem; }
+  .student-card-mode { font-size: 0.65rem; font-family: 'Space Mono', monospace; margin-top: 0.5rem; }
+  .student-card-mode.compass { color: #4da6ff; }
+  .student-card-mode.map { color: var(--accent); }
+
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.8rem; border: 1px dashed var(--border); border-radius: 10px; }
+  .empty-state .big { font-size: 2.5rem; margin-bottom: 0.5rem; }
+
+  /* Task view */
+  .task-view { display: none; }
+  .task-view.active { display: block; }
+
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    border-radius: 8px; padding: 0.5rem 1rem;
+    font-family: 'Space Mono', monospace; font-size: 0.75rem; cursor: pointer;
+    margin-bottom: 1.5rem; transition: all 0.2s;
+  }
+  .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .task-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.5rem; }
+  .task-desc { color: var(--muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 2rem; }
+
+  /* Distance */
+  .compass-container { display: flex; flex-direction: column; align-items: center; gap: 2rem; }
+  .distance-display {
+    text-align: center; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 1.5rem 2.5rem; width: 100%;
+  }
+  .distance-label { font-size: 0.7rem; font-family: 'Space Mono', monospace; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+  .distance-value { font-size: 3.5rem; font-family: 'Space Mono', monospace; font-weight: 700; color: var(--accent); line-height: 1; margin-top: 0.3rem; }
+
+  /* Compass */
+  .compass-wrapper { position: relative; width: 260px; height: 260px; }
+  .compass-ring {
+    width: 260px; height: 260px; border-radius: 50%;
+    background: #141824; border: 2px solid var(--border);
+    position: relative; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 60px rgba(0,229,160,0.06), inset 0 0 40px rgba(0,0,0,0.4);
+  }
+  .compass-ring::before { content: ''; position: absolute; inset: 8px; border-radius: 50%; border: 1px solid var(--border); }
+  .compass-labels { position: absolute; inset: 0; border-radius: 50%; }
+  .compass-labels span { position: absolute; font-family: 'Space Mono', monospace; font-size: 0.75rem; font-weight: 700; color: var(--muted); }
+  .compass-labels .n { top: 14px; left: 50%; transform: translateX(-50%); color: var(--accent); }
+  .compass-labels .s { bottom: 14px; left: 50%; transform: translateX(-50%); }
+  .compass-labels .e { right: 14px; top: 50%; transform: translateY(-50%); }
+  .compass-labels .w { left: 14px; top: 50%; transform: translateY(-50%); }
+
+  .compass-needle-wrap { width: 200px; height: 200px; position: relative; display: flex; align-items: center; justify-content: center; transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .compass-needle { width: 8px; height: 180px; position: absolute; display: flex; flex-direction: column; align-items: center; }
+  .needle-north { width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 90px solid var(--accent); filter: drop-shadow(0 0 8px rgba(0,229,160,0.6)); }
+  .needle-center { width: 14px; height: 14px; background: var(--text); border-radius: 50%; z-index: 2; margin: -2px 0; box-shadow: 0 0 0 3px var(--surface); }
+  .needle-south { width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 90px solid #444; }
+
+  .compass-status { font-size: 0.75rem; font-family: 'Space Mono', monospace; color: var(--muted); text-align: center; }
+  .compass-status.error { color: var(--danger); }
+  .compass-status.ok { color: var(--accent); }
+
+  /* Map */
+  .map-container { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .map-address-bar { padding: 1rem 1.2rem; display: flex; align-items: center; gap: 0.8rem; border-bottom: 1px solid var(--border); }
+  .map-address { font-weight: 600; font-size: 0.95rem; }
+  .map-coords { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; }
+  .map-iframe-wrap { width: 100%; height: 320px; }
+  .map-iframe-wrap iframe { width: 100%; height: 100%; border: none; }
+
+  /* Permission */
+  .permission-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; text-align: center; }
+  .permission-icon { font-size: 3rem; margin-bottom: 1rem; }
+  .permission-box h3 { margin-bottom: 0.5rem; }
+  .permission-box p { color: var(--muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+  .btn-start { background: var(--accent); color: var(--bg); border: none; border-radius: 10px; padding: 0.9rem 2rem; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; cursor: pointer; }
+
+  /* Arrived */
+  .arrived-banner {
+    background: linear-gradient(135deg, rgba(0,229,160,0.15), rgba(0,229,160,0.05));
+    border: 1px solid var(--accent); border-radius: 12px; padding: 1.5rem;
+    text-align: center; margin-top: 1.5rem;
+    animation: pulse-border 2s infinite;
+  }
+  @keyframes pulse-border {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,229,160,0.3); }
+    50% { box-shadow: 0 0 0 8px rgba(0,229,160,0); }
+  }
+  .arrived-icon { font-size: 2.5rem; }
+  .arrived-title { font-size: 1.1rem; font-weight: 800; color: var(--accent); margin-top: 0.5rem; }
+
+  .loading { text-align: center; padding: 3rem; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">GPS<span>Opdrachten</span></div>
+</header>
+
+<div class="student-layout">
+  <!-- Picker -->
+  <div id="student-picker">
+    <div class="student-header">
+      <h2>Kies je opdracht</h2>
+      <p>Selecteer een opdracht om te starten</p>
+    </div>
+    <div class="assignment-grid" id="student-grid">
+      <div class="loading">⏳ Opdrachten laden...</div>
+    </div>
+  </div>
+
+  <!-- Task detail -->
+  <div id="task-detail" class="task-view">
+    <button class="back-btn" onclick="backToList()">← Terug naar overzicht</button>
+    <div class="task-title" id="task-title"></div>
+    <div class="task-desc" id="task-desc"></div>
+    <div id="task-content"></div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC_2gs99Sao2zdxa_JsRd9fNUFg-MVcXgw",
+    authDomain: "rome-maffia.firebaseapp.com",
+    projectId: "rome-maffia",
+    storageBucket: "rome-maffia.firebasestorage.app",
+    messagingSenderId: "68269167339",
+    appId: "1:68269167339:web:43f9f177f38af954fce4ae",
+    measurementId: "G-5J1MY47CG1"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  let assignments = [];
+  let activeAssignment = null;
+  let watchId = null;
+  let deviceHeading = null;
+  let currentLat = null;
+  let currentLng = null;
+
+  // Live sync
+  const q = query(collection(db, "assignments"), orderBy("order", "asc"));
+  onSnapshot(q, snapshot => {
+    assignments = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderStudentGrid();
+  }, err => {
+    document.getElementById('student-grid').innerHTML = `<div class="empty-state"><div class="big">⚠️</div>Kan opdrachten niet laden.<br>${err.message}</div>`;
+  });
+
+  function renderStudentGrid() {
+    const grid = document.getElementById('student-grid');
+    if (!assignments.length) {
+      grid.innerHTML = `<div class="empty-state"><div class="big">🗺</div>Nog geen opdrachten.<br>Vraag je leerkracht om ze in te voeren.</div>`;
+      return;
+    }
+    grid.innerHTML = assignments.map((a, i) => `
+      <div class="student-card" onclick="openTask('${a.id}')">
+        <div class="student-num">${i+1}</div>
+        <div class="student-card-info">
+          <div class="student-card-name">${a.name}</div>
+          ${a.desc ? `<div class="student-card-desc">${a.desc}</div>` : ''}
+          <div class="student-card-mode ${a.mode}">
+            ${a.mode === 'compass' ? '🧭 Zoek de locatie' : '🗺 Adres zichtbaar'}
+          </div>
+        </div>
+        <span style="font-size:1.2rem;color:var(--muted)">›</span>
+      </div>
+    `).join('');
+  }
+
+  window.openTask = function(id) {
+    activeAssignment = assignments.find(a => a.id === id);
+    if (!activeAssignment) return;
+    document.getElementById('student-picker').style.display = 'none';
+    document.getElementById('task-detail').classList.add('active');
+    document.getElementById('task-title').textContent = activeAssignment.name;
+    document.getElementById('task-desc').textContent = activeAssignment.desc || '';
+    if (activeAssignment.mode === 'compass') renderCompassMode();
+    else renderMapMode();
+  };
+
+  window.backToList = function() {
+    stopTracking();
+    document.getElementById('student-picker').style.display = '';
+    document.getElementById('task-detail').classList.remove('active');
+    activeAssignment = null;
+  };
+
+  function renderMapMode() {
+    const a = activeAssignment;
+    const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${a.lng-0.003},${a.lat-0.003},${a.lng+0.003},${a.lat+0.003}&layer=mapnik&marker=${a.lat},${a.lng}`;
+    const gmapsUrl = `https://www.google.com/maps?q=${a.lat},${a.lng}`;
+    document.getElementById('task-content').innerHTML = `
+      <div class="map-container">
+        <div class="map-address-bar">
+          <div style="font-size:1.3rem">📍</div>
+          <div>
+            <div class="map-address">${a.address || 'GPS locatie'}</div>
+            <div class="map-coords">${a.lat.toFixed(5)}, ${a.lng.toFixed(5)}</div>
+          </div>
+        </div>
+        <div class="map-iframe-wrap">
+          <iframe src="${mapUrl}" loading="lazy"></iframe>
+        </div>
+      </div>
+      <div style="margin-top:1rem;text-align:center;">
+        <a href="${gmapsUrl}" target="_blank" style="display:inline-block;padding:0.8rem 1.5rem;background:var(--accent);color:var(--bg);border-radius:10px;font-weight:700;text-decoration:none;">📱 Open in Google Maps</a>
+      </div>
+    `;
+  }
+
+  function renderCompassMode() {
+    document.getElementById('task-content').innerHTML = `
+      <div class="permission-box" id="perm-box">
+        <div class="permission-icon">🧭</div>
+        <h3>Locatietoegang nodig</h3>
+        <p>Om de kompas en afstand te tonen heeft de app toegang nodig tot je GPS locatie.</p>
+        <button class="btn-start" onclick="startCompass()">Start navigatie</button>
+      </div>
+      <div class="compass-container" id="compass-ui" style="display:none;">
+        <div class="distance-display">
+          <div class="distance-label">Afstand tot bestemming</div>
+          <div class="distance-value" id="dist-val">—</div>
+          <div style="color:var(--muted);font-family:'Space Mono',monospace;font-size:0.8rem;" id="dist-unit">wachten op GPS...</div>
+        </div>
+        <div class="compass-wrapper">
+          <div class="compass-ring">
+            <div class="compass-labels">
+              <span class="n">N</span><span class="s">Z</span><span class="e">O</span><span class="w">W</span>
+            </div>
+            <div class="compass-needle-wrap" id="needle-wrap">
+              <div class="compass-needle">
+                <div class="needle-north"></div>
+                <div class="needle-center"></div>
+                <div class="needle-south"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="compass-status" id="compass-status">📡 GPS actief...</div>
+        <div id="arrived-wrap"></div>
+      </div>
+    `;
+  }
+
+  window.startCompass = function() {
+    document.getElementById('perm-box').style.display = 'none';
+    document.getElementById('compass-ui').style.display = 'flex';
+    startTracking();
+  };
+
+  function deg2rad(d) { return d * Math.PI / 180; }
+  function haversine(lat1, lng1, lat2, lng2) {
+    const R = 6371000, dLat = deg2rad(lat2-lat1), dLng = deg2rad(lng2-lng1);
+    const a = Math.sin(dLat/2)**2 + Math.cos(deg2rad(lat1))*Math.cos(deg2rad(lat2))*Math.sin(dLng/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+  function bearing(lat1, lng1, lat2, lng2) {
+    const dLng = deg2rad(lng2-lng1);
+    const y = Math.sin(dLng)*Math.cos(deg2rad(lat2));
+    const x = Math.cos(deg2rad(lat1))*Math.sin(deg2rad(lat2)) - Math.sin(deg2rad(lat1))*Math.cos(deg2rad(lat2))*Math.cos(dLng);
+    return (Math.atan2(y,x)*180/Math.PI+360)%360;
+  }
+
+  function startTracking() {
+    if (!navigator.geolocation) return;
+    watchId = navigator.geolocation.watchPosition(pos => {
+      currentLat = pos.coords.latitude;
+      currentLng = pos.coords.longitude;
+      updateCompassUI();
+    }, err => {
+      const s = document.getElementById('compass-status');
+      if (s) { s.textContent = '✗ GPS fout: ' + err.message; s.className = 'compass-status error'; }
+    }, { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 });
+
+    const handler = e => {
+      if (e.absolute && e.alpha !== null) deviceHeading = e.alpha;
+      else if (e.webkitCompassHeading !== undefined) deviceHeading = e.webkitCompassHeading;
+      else if (e.alpha !== null) deviceHeading = e.alpha;
+      updateCompassUI();
+    };
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission().then(s => { if (s === 'granted') window.addEventListener('deviceorientation', handler); });
+    } else {
+      window.addEventListener('deviceorientationabsolute', handler, true);
+      window.addEventListener('deviceorientation', handler, true);
+    }
+  }
+
+  function stopTracking() {
+    if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+    deviceHeading = null; currentLat = null; currentLng = null;
+  }
+
+  function updateCompassUI() {
+    if (!activeAssignment || currentLat === null) return;
+    const a = activeAssignment;
+    const dist = haversine(currentLat, currentLng, a.lat, a.lng);
+    const bear = bearing(currentLat, currentLng, a.lat, a.lng);
+    const distVal = document.getElementById('dist-val');
+    const distUnit = document.getElementById('dist-unit');
+    if (distVal) {
+      distVal.textContent = dist >= 1000 ? (dist/1000).toFixed(2) : Math.round(dist);
+      distUnit.textContent = dist >= 1000 ? 'kilometer' : 'meter';
+    }
+    const needle = document.getElementById('needle-wrap');
+    if (needle) needle.style.transform = `rotate(${deviceHeading !== null ? bear - deviceHeading : bear}deg)`;
+    const status = document.getElementById('compass-status');
+    if (status) {
+      status.textContent = deviceHeading !== null ? '✓ Kompas actief' : '⚠ Geen kompas — richting op basis van GPS';
+      status.className = 'compass-status' + (deviceHeading !== null ? ' ok' : '');
+    }
+    const arrivedWrap = document.getElementById('arrived-wrap');
+    if (arrivedWrap && dist <= a.radius && !arrivedWrap.innerHTML) {
+      arrivedWrap.innerHTML = `<div class="arrived-banner"><div class="arrived-icon">🎉</div><div class="arrived-title">Je bent aangekomen!</div><div style="color:var(--muted);font-size:0.8rem;margin-top:0.4rem;">Je bevindt je op de juiste locatie.</div></div>`;
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPS Opdrachten — Beheer</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #181c27;
+    --surface2: #1f2436;
+    --border: #2a3050;
+    --accent: #00e5a0;
+    --accent2: #ff6b35;
+    --text: #e8eaf2;
+    --muted: #6b7498;
+    --danger: #ff4757;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Syne', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 2rem; border-bottom: 1px solid var(--border);
+    background: var(--surface); position: sticky; top: 0; z-index: 100;
+  }
+  .logo { font-size: 1.4rem; font-weight: 800; }
+  .logo span { color: var(--accent); }
+  .admin-badge {
+    font-family: 'Space Mono', monospace; font-size: 0.7rem;
+    background: rgba(255,107,53,0.15); color: var(--accent2);
+    border: 1px solid rgba(255,107,53,0.3); border-radius: 6px;
+    padding: 0.3rem 0.7rem; letter-spacing: 0.05em;
+  }
+
+  .admin-layout {
+    display: grid; grid-template-columns: 1fr 400px;
+    gap: 2rem; padding: 2rem; max-width: 1200px; margin: 0 auto;
+  }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
+  .panel-title {
+    font-size: 0.7rem; font-family: 'Space Mono', monospace;
+    letter-spacing: 0.12em; color: var(--accent); text-transform: uppercase;
+    margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .panel-title::before { content: ''; display: inline-block; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+
+  .form-group { margin-bottom: 1rem; }
+  label { display: block; font-size: 0.72rem; font-family: 'Space Mono', monospace; color: var(--muted); margin-bottom: 0.4rem; letter-spacing: 0.05em; text-transform: uppercase; }
+  input[type=text], input[type=number], textarea, select {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-family: 'Syne', sans-serif;
+    font-size: 0.95rem; padding: 0.65rem 0.9rem; outline: none; transition: border-color 0.2s;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 80px; }
+
+  .coords-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+
+  .mode-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; }
+  .mode-btn {
+    padding: 0.7rem; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--surface2); color: var(--muted); cursor: pointer;
+    font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 600;
+    text-align: center; transition: all 0.2s;
+  }
+  .mode-btn:hover { border-color: var(--accent); color: var(--text); }
+  .mode-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+
+  .btn { padding: 0.7rem 1.5rem; border-radius: 8px; border: none; cursor: pointer; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem; transition: all 0.2s; }
+  .btn-primary { background: var(--accent); color: var(--bg); width: 100%; padding: 0.85rem; font-size: 1rem; margin-top: 0.5rem; }
+  .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-secondary { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); width: 100%; margin-top: 0.5rem; }
+  .btn-danger { background: var(--danger); color: white; }
+  .btn-sm { padding: 0.35rem 0.8rem; font-size: 0.78rem; border-radius: 6px; }
+
+  .assignment-list { display: flex; flex-direction: column; gap: 0.8rem; }
+  .assignment-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.2rem;
+    display: flex; align-items: center; gap: 1rem;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .assignment-card:hover { border-color: var(--accent); }
+  .assignment-card.editing { border-color: var(--accent2); }
+  .card-num {
+    width: 36px; height: 36px; background: var(--surface); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Mono', monospace; font-size: 0.85rem; font-weight: 700;
+    color: var(--accent); flex-shrink: 0;
+  }
+  .card-info { flex: 1; min-width: 0; }
+  .card-name { font-weight: 700; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-meta { font-size: 0.72rem; font-family: 'Space Mono', monospace; color: var(--muted); margin-top: 0.2rem; }
+  .mode-badge { font-size: 0.65rem; font-family: 'Space Mono', monospace; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 700; flex-shrink: 0; }
+  .mode-badge.compass { background: #1a2e4a; color: #4da6ff; }
+  .mode-badge.map { background: #1a3a2e; color: var(--accent); }
+  .card-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+
+  /* Drag handle */
+  .drag-handle { cursor: grab; color: var(--muted); font-size: 1rem; flex-shrink: 0; padding: 0 0.2rem; user-select: none; }
+  .drag-handle:active { cursor: grabbing; }
+  .assignment-card.dragging { opacity: 0.4; border: 1px dashed var(--accent); }
+  .assignment-card.drag-over { border-color: var(--accent2); background: rgba(255,107,53,0.05); }
+
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.8rem; border: 1px dashed var(--border); border-radius: 10px; }
+  .empty-state .big { font-size: 2.5rem; margin-bottom: 0.5rem; }
+
+  .geo-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--accent); border-radius: 6px; padding: 0.4rem 0.8rem; font-size: 0.75rem; font-family: 'Space Mono', monospace; cursor: pointer; transition: all 0.2s; margin-top: 0.4rem; }
+  .geo-btn:hover { background: var(--accent); color: var(--bg); }
+  .geo-hint { font-size: 0.72rem; font-family: 'Space Mono', monospace; color: var(--muted); margin-top: 0.3rem; }
+
+  .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--accent); color: var(--bg); padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 700; font-size: 0.9rem; z-index: 999; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.error { background: var(--danger); color: white; }
+
+  .saving-indicator { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--muted); text-align: center; margin-top: 0.5rem; min-height: 1.2rem; }
+
+  @media (max-width: 768px) { .admin-layout { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">GPS<span>Opdrachten</span> <span style="font-size:0.9rem;color:var(--muted);font-weight:400;">— Beheer</span></div>
+  <div class="admin-badge">⚙ LEERKRACHT</div>
+</header>
+
+<div class="admin-layout">
+  <!-- Form -->
+  <div class="panel">
+    <div class="panel-title" id="form-panel-title">Nieuwe opdracht</div>
+
+    <div class="form-group">
+      <label>Naam opdracht</label>
+      <input type="text" id="inp-name" placeholder="bv. Historisch centrum">
+    </div>
+
+    <div class="form-group">
+      <label>Beschrijving / instructie voor leerling</label>
+      <textarea id="inp-desc" placeholder="bv. Zoek het gebouw op de hoek van de markt..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Weergavemodus</label>
+      <div class="mode-toggle">
+        <div class="mode-btn active" id="mode-compass" onclick="selectMode('compass')">🧭 Kompas + afstand</div>
+        <div class="mode-btn" id="mode-map" onclick="selectMode('map')">🗺 Adres + kaartje</div>
+      </div>
+    </div>
+
+    <div class="form-group" id="group-address" style="display:none;">
+      <label>Adres (voor leerling zichtbaar)</label>
+      <input type="text" id="inp-address" placeholder="bv. Grote Markt 1, Gent">
+    </div>
+
+    <div class="form-group">
+      <label>GPS Coördinaten</label>
+      <div class="coords-row">
+        <input type="number" id="inp-lat" placeholder="Breedtegraad" step="0.000001">
+        <input type="number" id="inp-lng" placeholder="Lengtegraad" step="0.000001">
+      </div>
+      <button class="geo-btn" onclick="useCurrentLocation()">📍 Gebruik mijn huidige locatie</button>
+      <div class="geo-hint" id="geo-hint"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Aankomstradius (meter) — alleen bij kompas</label>
+      <input type="number" id="inp-radius" value="25" min="5" max="500">
+    </div>
+
+    <button class="btn btn-primary" onclick="saveAssignment()">✓ Opdracht opslaan</button>
+    <button class="btn btn-secondary" onclick="cancelEdit()">Annuleren</button>
+    <div class="saving-indicator" id="saving-indicator"></div>
+  </div>
+
+  <!-- List -->
+  <div class="panel">
+    <div class="panel-title">Opdrachten (<span id="count">0</span>) <span style="color:var(--muted);font-size:0.65rem;margin-left:0.5rem;">sleep om volgorde te wijzigen</span></div>
+    <div class="assignment-list" id="assignment-list">
+      <div class="empty-state"><div class="big">📋</div>Nog geen opdrachten.<br>Voeg er een toe links.</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC_2gs99Sao2zdxa_JsRd9fNUFg-MVcXgw",
+    authDomain: "rome-maffia.firebaseapp.com",
+    projectId: "rome-maffia",
+    storageBucket: "rome-maffia.firebasestorage.app",
+    messagingSenderId: "68269167339",
+    appId: "1:68269167339:web:43f9f177f38af954fce4ae",
+    measurementId: "G-5J1MY47CG1"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  let assignments = [];
+  let selectedMode = 'compass';
+  let editingId = null;
+  let dragSrcIndex = null;
+
+  // ── Helpers ──
+  function toast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => t.className = 'toast', 2500);
+  }
+  function setSaving(msg) { document.getElementById('saving-indicator').textContent = msg; }
+
+  // ── Mode ──
+  window.selectMode = function(m) {
+    selectedMode = m;
+    document.getElementById('mode-compass').classList.toggle('active', m === 'compass');
+    document.getElementById('mode-map').classList.toggle('active', m === 'map');
+    document.getElementById('group-address').style.display = m === 'map' ? 'block' : 'none';
+  };
+
+  // ── Geo ──
+  window.useCurrentLocation = function() {
+    if (!navigator.geolocation) { toast('Geolocatie niet ondersteund', true); return; }
+    document.getElementById('geo-hint').textContent = '📡 Locatie ophalen...';
+    navigator.geolocation.getCurrentPosition(pos => {
+      document.getElementById('inp-lat').value = pos.coords.latitude.toFixed(6);
+      document.getElementById('inp-lng').value = pos.coords.longitude.toFixed(6);
+      document.getElementById('geo-hint').textContent = '✓ Locatie ingevuld!';
+      setTimeout(() => document.getElementById('geo-hint').textContent = '', 2000);
+    }, () => { document.getElementById('geo-hint').textContent = '✗ Geen toegang tot locatie'; });
+  };
+
+  // ── Live sync ──
+  const q = query(collection(db, "assignments"), orderBy("order", "asc"));
+  onSnapshot(q, snapshot => {
+    assignments = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    document.getElementById('count').textContent = assignments.length;
+    renderAdminList();
+  });
+
+  // ── Save ──
+  window.saveAssignment = async function() {
+    const name = document.getElementById('inp-name').value.trim();
+    const desc = document.getElementById('inp-desc').value.trim();
+    const lat = parseFloat(document.getElementById('inp-lat').value);
+    const lng = parseFloat(document.getElementById('inp-lng').value);
+    const radius = parseInt(document.getElementById('inp-radius').value) || 25;
+    const address = document.getElementById('inp-address').value.trim();
+
+    if (!name) { toast('Voer een naam in', true); return; }
+    if (isNaN(lat) || isNaN(lng)) { toast('Voer geldige coördinaten in', true); return; }
+
+    setSaving('💾 Opslaan...');
+    try {
+      const data = { name, desc, lat, lng, radius, mode: selectedMode, address };
+      if (editingId) {
+        await updateDoc(doc(db, "assignments", editingId), data);
+        toast('Opdracht bijgewerkt ✓');
+      } else {
+        data.order = assignments.length;
+        await addDoc(collection(db, "assignments"), data);
+        toast('Opdracht toegevoegd ✓');
+      }
+      setSaving('');
+      resetForm();
+    } catch (e) {
+      setSaving('');
+      toast('Fout: ' + e.message, true);
+    }
+  };
+
+  window.editAssignment = function(id) {
+    const a = assignments.find(x => x.id === id);
+    if (!a) return;
+    editingId = id;
+    document.getElementById('inp-name').value = a.name;
+    document.getElementById('inp-desc').value = a.desc || '';
+    document.getElementById('inp-lat').value = a.lat;
+    document.getElementById('inp-lng').value = a.lng;
+    document.getElementById('inp-radius').value = a.radius || 25;
+    document.getElementById('inp-address').value = a.address || '';
+    selectMode(a.mode || 'compass');
+    document.getElementById('form-panel-title').textContent = 'Opdracht bewerken';
+    document.querySelectorAll('.assignment-card').forEach(c => c.classList.remove('editing'));
+    document.getElementById('card-' + id)?.classList.add('editing');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  window.deleteAssignment = async function(id) {
+    if (!confirm('Opdracht verwijderen?')) return;
+    try {
+      await deleteDoc(doc(db, "assignments", id));
+      if (editingId === id) resetForm();
+      toast('Opdracht verwijderd');
+    } catch (e) { toast('Fout: ' + e.message, true); }
+  };
+
+  window.cancelEdit = resetForm;
+  function resetForm() {
+    editingId = null;
+    document.getElementById('inp-name').value = '';
+    document.getElementById('inp-desc').value = '';
+    document.getElementById('inp-lat').value = '';
+    document.getElementById('inp-lng').value = '';
+    document.getElementById('inp-radius').value = '25';
+    document.getElementById('inp-address').value = '';
+    document.getElementById('form-panel-title').textContent = 'Nieuwe opdracht';
+    selectMode('compass');
+    document.querySelectorAll('.assignment-card').forEach(c => c.classList.remove('editing'));
+  }
+
+  // ── Render ──
+  function renderAdminList() {
+    const list = document.getElementById('assignment-list');
+    if (!assignments.length) {
+      list.innerHTML = `<div class="empty-state"><div class="big">📋</div>Nog geen opdrachten.<br>Voeg er een toe links.</div>`;
+      return;
+    }
+    list.innerHTML = assignments.map((a, i) => `
+      <div class="assignment-card" id="card-${a.id}"
+        draggable="true"
+        ondragstart="dragStart(event,${i})"
+        ondragover="dragOver(event,${i})"
+        ondragleave="dragLeave(event)"
+        ondrop="dragDrop(event,${i})"
+        ondragend="dragEnd(event)"
+        onclick="editAssignment('${a.id}')">
+        <span class="drag-handle" title="Sleep om te herordenen">⠿</span>
+        <div class="card-num">${i+1}</div>
+        <div class="card-info">
+          <div class="card-name">${a.name}</div>
+          <div class="card-meta">${a.lat?.toFixed(4)}, ${a.lng?.toFixed(4)} · r=${a.radius}m</div>
+        </div>
+        <span class="mode-badge ${a.mode}">${a.mode === 'compass' ? '🧭' : '🗺'}</span>
+        <div class="card-actions" onclick="event.stopPropagation()">
+          <button class="btn btn-danger btn-sm" onclick="deleteAssignment('${a.id}')">✕</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ── Drag & Drop reorder ──
+  window.dragStart = function(e, i) {
+    dragSrcIndex = i;
+    setTimeout(() => e.target.closest('.assignment-card').classList.add('dragging'), 0);
+  };
+  window.dragOver = function(e, i) {
+    e.preventDefault();
+    document.querySelectorAll('.assignment-card').forEach(c => c.classList.remove('drag-over'));
+    if (i !== dragSrcIndex) e.target.closest('.assignment-card')?.classList.add('drag-over');
+  };
+  window.dragLeave = function(e) {
+    e.target.closest('.assignment-card')?.classList.remove('drag-over');
+  };
+  window.dragDrop = async function(e, targetIndex) {
+    e.preventDefault();
+    if (dragSrcIndex === null || dragSrcIndex === targetIndex) return;
+    const reordered = [...assignments];
+    const [moved] = reordered.splice(dragSrcIndex, 1);
+    reordered.splice(targetIndex, 0, moved);
+
+    setSaving('↕ Volgorde opslaan...');
+    try {
+      const batch = writeBatch(db);
+      reordered.forEach((a, idx) => batch.update(doc(db, "assignments", a.id), { order: idx }));
+      await batch.commit();
+      setSaving('');
+    } catch (e) { setSaving(''); toast('Fout bij herordenen', true); }
+  };
+  window.dragEnd = function(e) {
+    document.querySelectorAll('.assignment-card').forEach(c => { c.classList.remove('dragging'); c.classList.remove('drag-over'); });
+    dragSrcIndex = null;
+  };
+</script>
+</body>
+</html>
