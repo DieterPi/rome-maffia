@@ -91,27 +91,43 @@
   .distance-label { font-size: 0.7rem; font-family: 'Space Mono', monospace; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
   .distance-value { font-size: 3.5rem; font-family: 'Space Mono', monospace; font-weight: 700; color: var(--accent); line-height: 1; margin-top: 0.3rem; }
 
-  /* Compass */
-  .compass-wrapper { position: relative; width: 260px; height: 260px; }
-  .compass-ring {
-    width: 260px; height: 260px; border-radius: 50%;
-    background: #141824; border: 2px solid var(--border);
-    position: relative; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 0 60px rgba(0,229,160,0.06), inset 0 0 40px rgba(0,0,0,0.4);
+  /* Arrow navigator */
+  .arrow-wrapper {
+    display: flex; flex-direction: column; align-items: center; gap: 1rem;
   }
-  .compass-ring::before { content: ''; position: absolute; inset: 8px; border-radius: 50%; border: 1px solid var(--border); }
-  .compass-labels { position: absolute; inset: 0; border-radius: 50%; }
-  .compass-labels span { position: absolute; font-family: 'Space Mono', monospace; font-size: 0.75rem; font-weight: 700; color: var(--muted); }
-  .compass-labels .n { top: 14px; left: 50%; transform: translateX(-50%); color: var(--accent); }
-  .compass-labels .s { bottom: 14px; left: 50%; transform: translateX(-50%); }
-  .compass-labels .e { right: 14px; top: 50%; transform: translateY(-50%); }
-  .compass-labels .w { left: 14px; top: 50%; transform: translateY(-50%); }
-
-  .compass-needle-wrap { width: 200px; height: 200px; position: relative; display: flex; align-items: center; justify-content: center; transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
-  .compass-needle { width: 8px; height: 180px; position: absolute; display: flex; flex-direction: column; align-items: center; }
-  .needle-north { width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 90px solid var(--accent); filter: drop-shadow(0 0 8px rgba(0,229,160,0.6)); }
-  .needle-center { width: 14px; height: 14px; background: var(--text); border-radius: 50%; z-index: 2; margin: -2px 0; box-shadow: 0 0 0 3px var(--surface); }
-  .needle-south { width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 90px solid #444; }
+  .arrow-ring {
+    width: 220px; height: 220px; border-radius: 50%;
+    background: #141824; border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 60px rgba(0,229,160,0.06), inset 0 0 40px rgba(0,0,0,0.4);
+    position: relative;
+  }
+  .arrow-ring::before { content: ''; position: absolute; inset: 10px; border-radius: 50%; border: 1px dashed var(--border); }
+  .arrow-rotate {
+    transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav-arrow {
+    width: 0; height: 0;
+    border-left: 28px solid transparent;
+    border-right: 28px solid transparent;
+    border-bottom: 110px solid var(--accent);
+    filter: drop-shadow(0 0 16px rgba(0,229,160,0.7));
+    position: relative;
+  }
+  .nav-arrow::after {
+    content: '';
+    position: absolute;
+    bottom: -110px; left: -18px;
+    width: 0; height: 0;
+    border-left: 18px solid transparent;
+    border-right: 18px solid transparent;
+    border-top: 55px solid rgba(0,229,160,0.25);
+  }
+  .arrow-hint {
+    font-size: 0.72rem; font-family: 'Space Mono', monospace;
+    color: var(--muted); text-align: center; max-width: 220px; line-height: 1.5;
+  }
 
   .compass-status { font-size: 0.75rem; font-family: 'Space Mono', monospace; color: var(--muted); text-align: center; }
   .compass-status.error { color: var(--danger); }
@@ -286,21 +302,14 @@
           <div class="distance-value" id="dist-val">—</div>
           <div style="color:var(--muted);font-family:'Space Mono',monospace;font-size:0.8rem;" id="dist-unit">wachten op GPS...</div>
         </div>
-        <div class="compass-wrapper">
-          <div class="compass-ring">
-            <div class="compass-labels">
-              <span class="n">N</span><span class="s">Z</span><span class="e">O</span><span class="w">W</span>
-            </div>
-            <div class="compass-needle-wrap" id="needle-wrap">
-              <div class="compass-needle">
-                <div class="needle-north"></div>
-                <div class="needle-center"></div>
-                <div class="needle-south"></div>
-              </div>
+        <div class="arrow-wrapper">
+          <div class="arrow-ring">
+            <div class="arrow-rotate" id="arrow-rotate">
+              <div class="nav-arrow"></div>
             </div>
           </div>
+          <div class="arrow-hint" id="compass-status">📡 GPS aan het zoeken...</div>
         </div>
-        <div class="compass-status" id="compass-status">📡 GPS actief...</div>
         <div id="arrived-wrap"></div>
       </div>
     `;
@@ -330,20 +339,26 @@
     watchId = navigator.geolocation.watchPosition(pos => {
       currentLat = pos.coords.latitude;
       currentLng = pos.coords.longitude;
+      // Use GPS heading if available and moving
+      if (pos.coords.heading !== null && pos.coords.speed > 0.5) {
+        deviceHeading = pos.coords.heading;
+      }
       updateCompassUI();
     }, err => {
       const s = document.getElementById('compass-status');
-      if (s) { s.textContent = '✗ GPS fout: ' + err.message; s.className = 'compass-status error'; }
-    }, { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 });
+      if (s) { s.textContent = '✗ GPS fout: ' + err.message; s.style.color = 'var(--danger)'; }
+    }, { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 });
 
     const handler = e => {
-      if (e.absolute && e.alpha !== null) deviceHeading = e.alpha;
-      else if (e.webkitCompassHeading !== undefined) deviceHeading = e.webkitCompassHeading;
-      else if (e.alpha !== null) deviceHeading = e.alpha;
+      if (e.webkitCompassHeading !== undefined && e.webkitCompassHeading !== null) {
+        deviceHeading = e.webkitCompassHeading; // iOS: already absolute
+      } else if (e.absolute && e.alpha !== null) {
+        deviceHeading = (360 - e.alpha) % 360; // Android absolute
+      }
       updateCompassUI();
     };
     if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      DeviceOrientationEvent.requestPermission().then(s => { if (s === 'granted') window.addEventListener('deviceorientation', handler); });
+      DeviceOrientationEvent.requestPermission().then(s => { if (s === 'granted') window.addEventListener('deviceorientation', handler, true); });
     } else {
       window.addEventListener('deviceorientationabsolute', handler, true);
       window.addEventListener('deviceorientation', handler, true);
@@ -360,19 +375,35 @@
     const a = activeAssignment;
     const dist = haversine(currentLat, currentLng, a.lat, a.lng);
     const bear = bearing(currentLat, currentLng, a.lat, a.lng);
+
+    // Distance
     const distVal = document.getElementById('dist-val');
     const distUnit = document.getElementById('dist-unit');
     if (distVal) {
       distVal.textContent = dist >= 1000 ? (dist/1000).toFixed(2) : Math.round(dist);
       distUnit.textContent = dist >= 1000 ? 'kilometer' : 'meter';
     }
-    const needle = document.getElementById('needle-wrap');
-    if (needle) needle.style.transform = `rotate(${deviceHeading !== null ? bear - deviceHeading : bear}deg)`;
+
+    // Arrow: rotate so it points toward destination relative to where device faces
+    const arrow = document.getElementById('arrow-rotate');
+    if (arrow) {
+      const rotation = deviceHeading !== null ? bear - deviceHeading : bear;
+      arrow.style.transform = `rotate(${rotation}deg)`;
+    }
+
+    // Status
     const status = document.getElementById('compass-status');
     if (status) {
-      status.textContent = deviceHeading !== null ? '✓ Kompas actief' : '⚠ Geen kompas — richting op basis van GPS';
-      status.className = 'compass-status' + (deviceHeading !== null ? ' ok' : '');
+      if (deviceHeading !== null) {
+        status.textContent = '✓ Volg de pijl naar de bestemming';
+        status.style.color = 'var(--accent)';
+      } else {
+        status.textContent = '⚠ Geen kompas beschikbaar — beweeg je toestel voor een GPS-richting';
+        status.style.color = 'var(--muted)';
+      }
     }
+
+    // Arrived
     const arrivedWrap = document.getElementById('arrived-wrap');
     if (arrivedWrap && dist <= a.radius && !arrivedWrap.innerHTML) {
       arrivedWrap.innerHTML = `<div class="arrived-banner"><div class="arrived-icon">🎉</div><div class="arrived-title">Je bent aangekomen!</div><div style="color:var(--muted);font-size:0.8rem;margin-top:0.4rem;">Je bevindt je op de juiste locatie.</div></div>`;
