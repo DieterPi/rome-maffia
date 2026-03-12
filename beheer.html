@@ -19,7 +19,6 @@
     --paper: #f0e6c8;
     --paper-dark: #d9cc9a;
     --ink: #1a1208;
-    --danger: #c0152a;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -27,77 +26,69 @@
   body {
     font-family: 'Courier Prime', monospace;
     background: var(--bg); color: var(--text); min-height: 100vh;
-    background-image:
-      repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(255,255,255,0.012) 28px, rgba(255,255,255,0.012) 29px);
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(255,255,255,0.012) 28px, rgba(255,255,255,0.012) 29px);
   }
 
   /* ── HEADER ── */
   header {
-    background: var(--surface);
-    border-bottom: 2px solid var(--red);
-    padding: 0.9rem 2rem;
-    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); border-bottom: 2px solid var(--red);
+    padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;
     position: sticky; top: 0; z-index: 100;
   }
-  .logo {
-    font-family: 'Special Elite', cursive;
-    font-size: 1.2rem; color: var(--text); letter-spacing: 0.04em;
-  }
+  .logo { font-family: 'Special Elite', cursive; font-size: 1.3rem; color: var(--text); letter-spacing: 0.04em; }
   .logo span { color: var(--red); }
-  .admin-badge {
-    font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase;
-    color: var(--muted); border: 1px solid var(--border);
-    padding: 0.3rem 0.7rem;
-  }
+  .admin-badge { font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--border); padding: 0.3rem 0.7rem; }
 
   /* ── LAYOUT ── */
-  .admin-layout {
-    display: grid; grid-template-columns: 1fr 380px;
-    gap: 1.5rem; padding: 1.5rem; max-width: 1200px; margin: 0 auto;
-  }
+  .admin-layout { display: grid; grid-template-columns: 1fr 400px; gap: 1.5rem; padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
 
   /* ── PANELS ── */
-  .panel {
-    background: var(--surface);
-    border: 1px solid var(--border-light);
-    padding: 1.5rem;
-  }
+  .panel { background: var(--surface); border: 1px solid var(--border-light); padding: 1.5rem; }
   .panel-title {
-    font-family: 'Special Elite', cursive;
-    font-size: 0.95rem; color: var(--red);
+    font-family: 'Special Elite', cursive; font-size: 1.05rem; color: var(--red);
     letter-spacing: 0.06em; margin-bottom: 1.2rem;
     padding-bottom: 0.6rem; border-bottom: 1px solid var(--border-light);
     display: flex; align-items: center; justify-content: space-between;
   }
-  .panel-title-sub {
-    font-family: 'Courier Prime', monospace;
-    font-size: 0.6rem; color: var(--muted);
-    letter-spacing: 0.1em; font-weight: 400;
-  }
+  .panel-title-sub { font-family: 'Courier Prime', monospace; font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; font-weight: 400; }
 
   /* ── FORM ── */
-  .form-group { margin-bottom: 1rem; }
-  label {
-    display: block; font-size: 0.62rem; color: var(--muted);
-    margin-bottom: 0.35rem; letter-spacing: 0.12em; text-transform: uppercase;
-  }
+  .form-group { margin-bottom: 1.1rem; }
+  label { display: block; font-size: 0.7rem; color: var(--muted); margin-bottom: 0.4rem; letter-spacing: 0.12em; text-transform: uppercase; }
   input[type=text], input[type=number], textarea {
-    width: 100%; background: var(--surface2);
-    border: 1px solid var(--border-light);
+    width: 100%; background: var(--surface2); border: 1px solid var(--border-light);
     color: var(--text); font-family: 'Courier Prime', monospace;
-    font-size: 0.9rem; padding: 0.6rem 0.8rem; outline: none;
-    transition: border-color 0.2s;
+    font-size: 1rem; padding: 0.65rem 0.85rem; outline: none; transition: border-color 0.2s;
   }
   input:focus, textarea:focus { border-color: var(--red); }
-  textarea { resize: vertical; min-height: 75px; }
+  textarea { resize: vertical; min-height: 80px; }
   .coords-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+
+  /* ── SYMBOL INPUT ── */
+  .symbol-row { display: grid; grid-template-columns: 64px 1fr; gap: 0.8rem; align-items: start; }
+  .symbol-preview {
+    width: 64px; height: 64px; background: var(--red);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; color: var(--paper); flex-shrink: 0;
+    border: 1px solid var(--red-dim);
+  }
+  .symbol-input-wrap { display: flex; flex-direction: column; gap: 0.5rem; }
+  .symbol-input-wrap input { font-size: 1.5rem; text-align: center; }
+  .symbol-hint { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.05em; line-height: 1.5; }
+  .symbol-presets { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.3rem; }
+  .symbol-preset {
+    width: 32px; height: 32px; background: var(--surface2); border: 1px solid var(--border-light);
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    font-size: 1rem; transition: all 0.15s; color: var(--text);
+  }
+  .symbol-preset:hover { background: var(--red); border-color: var(--red); }
 
   /* ── MODE TOGGLE ── */
   .mode-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; }
   .mode-btn {
-    padding: 0.65rem; border: 1px solid var(--border-light);
+    padding: 0.7rem; border: 1px solid var(--border-light);
     background: var(--surface2); color: var(--muted); cursor: pointer;
-    font-family: 'Courier Prime', monospace; font-size: 0.8rem;
+    font-family: 'Courier Prime', monospace; font-size: 0.85rem;
     text-align: center; transition: all 0.2s; letter-spacing: 0.05em;
   }
   .mode-btn:hover { border-color: var(--red); color: var(--text); }
@@ -105,22 +96,21 @@
 
   /* ── BUTTONS ── */
   .btn-primary {
-    width: 100%; padding: 0.8rem; margin-top: 0.5rem;
+    width: 100%; padding: 0.85rem; margin-top: 0.5rem;
     background: var(--red); color: var(--paper); border: none;
-    font-family: 'Special Elite', cursive; font-size: 0.95rem; cursor: pointer;
+    font-family: 'Special Elite', cursive; font-size: 1rem; cursor: pointer;
     letter-spacing: 0.05em; box-shadow: 3px 3px 0 var(--red-dim); transition: all 0.15s;
   }
   .btn-primary:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--red-dim); }
   .btn-secondary {
-    width: 100%; padding: 0.7rem; margin-top: 0.4rem;
+    width: 100%; padding: 0.75rem; margin-top: 0.4rem;
     background: transparent; border: 1px solid var(--border-light); color: var(--muted);
-    font-family: 'Courier Prime', monospace; font-size: 0.85rem; cursor: pointer;
-    transition: all 0.2s; letter-spacing: 0.05em;
+    font-family: 'Courier Prime', monospace; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;
   }
   .btn-secondary:hover { border-color: var(--muted); color: var(--text); }
   .btn-danger {
     background: var(--red-dim); color: var(--paper); border: none;
-    padding: 0.3rem 0.65rem; font-size: 0.75rem; cursor: pointer;
+    padding: 0.35rem 0.7rem; font-size: 0.8rem; cursor: pointer;
     font-family: 'Courier Prime', monospace; transition: all 0.2s;
   }
   .btn-danger:hover { background: var(--red); }
@@ -128,21 +118,18 @@
   /* ── GEO ── */
   .geo-btn {
     background: transparent; border: 1px solid var(--border-light); color: var(--muted);
-    padding: 0.35rem 0.7rem; font-size: 0.7rem; font-family: 'Courier Prime', monospace;
-    cursor: pointer; margin-top: 0.4rem; transition: all 0.2s;
-    letter-spacing: 0.05em;
+    padding: 0.4rem 0.8rem; font-size: 0.75rem; font-family: 'Courier Prime', monospace;
+    cursor: pointer; margin-top: 0.4rem; transition: all 0.2s; letter-spacing: 0.05em;
   }
   .geo-btn:hover { border-color: var(--red); color: var(--red); }
-  .geo-hint { font-size: 0.68rem; color: var(--muted); margin-top: 0.3rem; letter-spacing: 0.05em; }
+  .geo-hint { font-size: 0.72rem; color: var(--muted); margin-top: 0.3rem; letter-spacing: 0.05em; }
 
   /* ── ASSIGNMENT LIST ── */
   .assignment-list { display: flex; flex-direction: column; gap: 0.6rem; }
-
   .assignment-card {
     background: var(--surface2); border: 1px solid var(--border-light);
-    border-left: 3px solid transparent;
-    padding: 0.8rem 1rem;
-    display: flex; align-items: center; gap: 0.8rem;
+    border-left: 3px solid transparent; padding: 0.85rem 1rem;
+    display: flex; align-items: center; gap: 0.9rem;
     cursor: pointer; transition: all 0.2s;
   }
   .assignment-card:hover { border-left-color: var(--red); }
@@ -150,47 +137,36 @@
   .assignment-card.dragging { opacity: 0.4; border: 1px dashed var(--border); }
   .assignment-card.drag-over { border-left-color: var(--muted); background: rgba(160,128,80,0.06); }
 
-  .drag-handle { cursor: grab; color: var(--border); font-size: 0.9rem; flex-shrink: 0; user-select: none; }
+  .drag-handle { cursor: grab; color: var(--border); font-size: 1rem; flex-shrink: 0; user-select: none; }
   .drag-handle:active { cursor: grabbing; }
 
-  .card-num {
-    width: 28px; height: 28px; background: var(--surface); border: 1px solid var(--border-light);
+  .card-symbol {
+    width: 36px; height: 36px; background: var(--red);
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.75rem; color: var(--red); flex-shrink: 0; font-family: 'Special Elite', cursive;
+    font-size: 1.1rem; color: var(--paper); flex-shrink: 0;
   }
   .card-info { flex: 1; min-width: 0; }
-  .card-name {
-    font-family: 'Special Elite', cursive; font-size: 0.9rem; color: var(--text);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .card-meta { font-size: 0.65rem; color: var(--muted); margin-top: 0.15rem; letter-spacing: 0.04em; }
-  .mode-badge {
-    font-size: 0.6rem; padding: 0.15rem 0.4rem; flex-shrink: 0;
-    letter-spacing: 0.06em; border: 1px solid;
-  }
+  .card-name { font-family: 'Special Elite', cursive; font-size: 1rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-meta { font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem; letter-spacing: 0.04em; }
+  .mode-badge { font-size: 0.65rem; padding: 0.15rem 0.45rem; flex-shrink: 0; letter-spacing: 0.06em; border: 1px solid; }
   .mode-badge.compass { border-color: rgba(160,128,80,0.4); color: var(--muted); }
   .mode-badge.map { border-color: rgba(58,90,32,0.5); color: #6a9a40; }
   .card-actions { display: flex; gap: 0.3rem; flex-shrink: 0; }
 
   /* ── EMPTY / SAVING ── */
-  .empty-state {
-    text-align: center; padding: 2.5rem 1rem; color: var(--muted);
-    font-size: 0.75rem; border: 1px dashed var(--border-light);
-    letter-spacing: 0.08em; line-height: 1.8;
-  }
-  .saving-indicator { font-size: 0.65rem; color: var(--muted); text-align: center; margin-top: 0.5rem; min-height: 1rem; letter-spacing: 0.08em; }
+  .empty-state { text-align: center; padding: 2.5rem 1rem; color: var(--muted); font-size: 0.85rem; border: 1px dashed var(--border-light); letter-spacing: 0.08em; line-height: 1.8; }
+  .saving-indicator { font-size: 0.7rem; color: var(--muted); text-align: center; margin-top: 0.5rem; min-height: 1rem; letter-spacing: 0.08em; }
 
   /* ── TOAST ── */
   .toast {
     position: fixed; bottom: 2rem; left: 50%;
     transform: translateX(-50%) translateY(100px);
     background: var(--surface); border: 1px solid var(--red); border-left: 3px solid var(--red);
-    color: var(--text); padding: 0.7rem 1.4rem;
-    font-size: 0.8rem; z-index: 999; letter-spacing: 0.05em;
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    color: var(--text); padding: 0.75rem 1.5rem; font-size: 0.85rem; z-index: 999;
+    letter-spacing: 0.05em; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   .toast.show { transform: translateX(-50%) translateY(0); }
-  .toast.error { border-color: var(--red); color: #ff8080; }
+  .toast.error { color: #ff8080; }
 
   @media (max-width: 768px) { .admin-layout { grid-template-columns: 1fr; } }
 </style>
@@ -204,11 +180,10 @@
 
 <div class="admin-layout">
 
-  <!-- Form panel -->
+  <!-- Form -->
   <div class="panel">
     <div class="panel-title" id="form-panel-title">
-      Nieuwe opdracht
-      <span class="panel-title-sub">INVOER</span>
+      Nieuwe opdracht <span class="panel-title-sub">INVOER</span>
     </div>
 
     <div class="form-group">
@@ -222,9 +197,34 @@
     </div>
 
     <div class="form-group">
+      <label>Symbool</label>
+      <div class="symbol-row">
+        <div class="symbol-preview" id="symbol-preview">★</div>
+        <div class="symbol-input-wrap">
+          <input type="text" id="inp-symbol" placeholder="★" maxlength="2" oninput="updateSymbolPreview()">
+          <div class="symbol-hint">Typ of plak een symbool (één teken)</div>
+          <div class="symbol-presets">
+            <div class="symbol-preset" onclick="setSymbol('★')">★</div>
+            <div class="symbol-preset" onclick="setSymbol('✦')">✦</div>
+            <div class="symbol-preset" onclick="setSymbol('⬟')">⬟</div>
+            <div class="symbol-preset" onclick="setSymbol('◆')">◆</div>
+            <div class="symbol-preset" onclick="setSymbol('⊕')">⊕</div>
+            <div class="symbol-preset" onclick="setSymbol('⚑')">⚑</div>
+            <div class="symbol-preset" onclick="setSymbol('✉')">✉</div>
+            <div class="symbol-preset" onclick="setSymbol('🔑')">🔑</div>
+            <div class="symbol-preset" onclick="setSymbol('📷')">📷</div>
+            <div class="symbol-preset" onclick="setSymbol('💣')">💣</div>
+            <div class="symbol-preset" onclick="setSymbol('🗂')">🗂</div>
+            <div class="symbol-preset" onclick="setSymbol('🩸')">🩸</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
       <label>Weergavemodus</label>
       <div class="mode-toggle">
-        <div class="mode-btn active" id="mode-compass" onclick="selectMode('compass')">🧭 Peiling + afstand</div>
+        <div class="mode-btn active" id="mode-compass" onclick="selectMode('compass')">🧭 Pijl + afstand</div>
         <div class="mode-btn" id="mode-map" onclick="selectMode('map')">🗺 Adres + kaartje</div>
       </div>
     </div>
@@ -254,7 +254,7 @@
     <div class="saving-indicator" id="saving-indicator"></div>
   </div>
 
-  <!-- List panel -->
+  <!-- List -->
   <div class="panel">
     <div class="panel-title">
       Opdrachten
@@ -287,6 +287,16 @@
   const db = getFirestore(app);
 
   let assignments = [], selectedMode = 'compass', editingId = null, dragSrcIndex = null;
+
+  // Symbol helpers — exposed to window for onclick
+  window.updateSymbolPreview = function() {
+    const v = document.getElementById('inp-symbol').value || '★';
+    document.getElementById('symbol-preview').textContent = v;
+  };
+  window.setSymbol = function(s) {
+    document.getElementById('inp-symbol').value = s;
+    document.getElementById('symbol-preview').textContent = s;
+  };
 
   function toast(msg, isError = false) {
     const t = document.getElementById('toast');
@@ -324,6 +334,7 @@
   window.saveAssignment = async function() {
     const name = document.getElementById('inp-name').value.trim();
     const desc = document.getElementById('inp-desc').value.trim();
+    const symbol = document.getElementById('inp-symbol').value.trim() || '★';
     const lat = parseFloat(document.getElementById('inp-lat').value);
     const lng = parseFloat(document.getElementById('inp-lng').value);
     const radius = parseInt(document.getElementById('inp-radius').value) || 25;
@@ -334,7 +345,7 @@
 
     setSaving('Opslaan...');
     try {
-      const data = { name, desc, lat, lng, radius, mode: selectedMode, address };
+      const data = { name, desc, symbol, lat, lng, radius, mode: selectedMode, address };
       if (editingId) {
         await updateDoc(doc(db, "assignments", editingId), data);
         toast('Opdracht bijgewerkt');
@@ -353,6 +364,8 @@
     editingId = id;
     document.getElementById('inp-name').value = a.name;
     document.getElementById('inp-desc').value = a.desc || '';
+    document.getElementById('inp-symbol').value = a.symbol || '★';
+    document.getElementById('symbol-preview').textContent = a.symbol || '★';
     document.getElementById('inp-lat').value = a.lat;
     document.getElementById('inp-lng').value = a.lng;
     document.getElementById('inp-radius').value = a.radius || 25;
@@ -376,12 +389,10 @@
   window.cancelEdit = resetForm;
   function resetForm() {
     editingId = null;
-    document.getElementById('inp-name').value = '';
-    document.getElementById('inp-desc').value = '';
-    document.getElementById('inp-lat').value = '';
-    document.getElementById('inp-lng').value = '';
+    ['inp-name','inp-desc','inp-lat','inp-lng','inp-address'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('inp-symbol').value = '★';
+    document.getElementById('symbol-preview').textContent = '★';
     document.getElementById('inp-radius').value = '25';
-    document.getElementById('inp-address').value = '';
     document.getElementById('form-panel-title').innerHTML = 'Nieuwe opdracht <span class="panel-title-sub">INVOER</span>';
     selectMode('compass');
     document.querySelectorAll('.assignment-card').forEach(c => c.classList.remove('editing'));
@@ -402,13 +413,13 @@
         ondrop="dragDrop(event,${i})"
         ondragend="dragEnd(event)"
         onclick="editAssignment('${a.id}')">
-        <span class="drag-handle" title="Sleep om te herordenen">⠿</span>
-        <div class="card-num">${String(i+1).padStart(2,'0')}</div>
+        <span class="drag-handle">⠿</span>
+        <div class="card-symbol">${a.symbol || String(i+1).padStart(2,'0')}</div>
         <div class="card-info">
           <div class="card-name">${a.name}</div>
           <div class="card-meta">${a.lat?.toFixed(4)}, ${a.lng?.toFixed(4)} · r=${a.radius}m</div>
         </div>
-        <span class="mode-badge ${a.mode}">${a.mode === 'compass' ? 'peiling' : 'kaart'}</span>
+        <span class="mode-badge ${a.mode}">${a.mode === 'compass' ? 'pijl' : 'kaart'}</span>
         <div class="card-actions" onclick="event.stopPropagation()">
           <button class="btn-danger" onclick="deleteAssignment('${a.id}')">✕</button>
         </div>
@@ -416,10 +427,7 @@
     `).join('');
   }
 
-  window.dragStart = function(e, i) {
-    dragSrcIndex = i;
-    setTimeout(() => e.target.closest('.assignment-card').classList.add('dragging'), 0);
-  };
+  window.dragStart = function(e, i) { dragSrcIndex = i; setTimeout(() => e.target.closest('.assignment-card').classList.add('dragging'), 0); };
   window.dragOver = function(e, i) {
     e.preventDefault();
     document.querySelectorAll('.assignment-card').forEach(c => c.classList.remove('drag-over'));
