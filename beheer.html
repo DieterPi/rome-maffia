@@ -245,6 +245,12 @@
     </div>
 
     <div class="form-group">
+      <label>Audiofragment (optioneel)</label>
+      <input type="text" id="inp-audio" placeholder="bv. audio/locatie1.mp3">
+      <div class="geo-hint">Relatief pad naar MP3 in je GitHub repository. Wordt afgespeeld bij aankomst.</div>
+    </div>
+
+    <div class="form-group">
       <label>Aankomstradius (meter)</label>
       <input type="number" id="inp-radius" value="25" min="5" max="500">
     </div>
@@ -340,12 +346,14 @@
     const radius = parseInt(document.getElementById('inp-radius').value) || 25;
     const address = document.getElementById('inp-address').value.trim();
 
+    const audio = document.getElementById('inp-audio').value.trim();
+
     if (!name) { toast('Voer een naam in', true); return; }
     if (isNaN(lat) || isNaN(lng)) { toast('Voer geldige coördinaten in', true); return; }
 
     setSaving('Opslaan...');
     try {
-      const data = { name, desc, symbol, lat, lng, radius, mode: selectedMode, address };
+      const data = { name, desc, symbol, lat, lng, radius, mode: selectedMode, address, audio };
       if (editingId) {
         await updateDoc(doc(db, "assignments", editingId), data);
         toast('Opdracht bijgewerkt');
@@ -369,7 +377,7 @@
     document.getElementById('inp-lat').value = a.lat;
     document.getElementById('inp-lng').value = a.lng;
     document.getElementById('inp-radius').value = a.radius || 25;
-    document.getElementById('inp-address').value = a.address || '';
+    document.getElementById('inp-audio').value = a.audio || '';
     selectMode(a.mode || 'compass');
     document.getElementById('form-panel-title').innerHTML = 'Opdracht bewerken <span class="panel-title-sub">BEWERKEN</span>';
     document.querySelectorAll('.assignment-card').forEach(c => c.classList.remove('editing'));
@@ -389,7 +397,7 @@
   window.cancelEdit = resetForm;
   function resetForm() {
     editingId = null;
-    ['inp-name','inp-desc','inp-lat','inp-lng','inp-address'].forEach(id => document.getElementById(id).value = '');
+    ['inp-name','inp-desc','inp-lat','inp-lng','inp-address','inp-audio'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('inp-symbol').value = '★';
     document.getElementById('symbol-preview').textContent = '★';
     document.getElementById('inp-radius').value = '25';
