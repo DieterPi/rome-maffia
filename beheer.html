@@ -3,281 +3,275 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Operazione Moro — Roma 1978</title>
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Operazione Moro — Beheer</title>
 <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #1a1208;
-    --paper: #f0e6c8;
-    --paper-dark: #d9cc9a;
     --surface: #231a0a;
     --surface2: #2e2210;
     --border: #6b4c1e;
+    --border-light: #4a3010;
     --red: #c0152a;
     --red-dim: #8a0f1e;
     --text: #f0e6c8;
-    --text-dark: #1a1208;
     --muted: #a08050;
+    --paper: #f0e6c8;
+    --paper-dark: #d9cc9a;
     --ink: #1a1208;
+    --danger: #c0152a;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
     font-family: 'Courier Prime', monospace;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
+    background: var(--bg); color: var(--text); min-height: 100vh;
     background-image:
-      repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(255,255,255,0.015) 28px, rgba(255,255,255,0.015) 29px),
-      repeating-linear-gradient(90deg, transparent, transparent 28px, rgba(255,255,255,0.01) 28px, rgba(255,255,255,0.01) 29px);
+      repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(255,255,255,0.012) 28px, rgba(255,255,255,0.012) 29px);
   }
 
   /* ── HEADER ── */
-  header { background: var(--red); position: relative; overflow: hidden; }
-  .header-rule { height: 4px; background: var(--bg); }
-  .header-rule-thin { height: 1px; background: rgba(0,0,0,0.3); margin-top: 2px; }
-  .header-inner {
-    display: flex; flex-direction: column; align-items: center;
-    padding: 1.2rem 1rem 1rem; position: relative; z-index: 1;
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--red);
+    padding: 0.9rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
   }
-  .header-eyebrow {
-    font-size: 0.6rem; letter-spacing: 0.25em;
-    color: rgba(240,230,200,0.6); text-transform: uppercase; margin-bottom: 0.3rem;
-  }
-  .header-title {
+  .logo {
     font-family: 'Special Elite', cursive;
-    font-size: 1.7rem; color: var(--paper);
-    text-shadow: 2px 2px 0 rgba(0,0,0,0.4); letter-spacing: 0.03em;
+    font-size: 1.2rem; color: var(--text); letter-spacing: 0.04em;
   }
-  .header-sub {
-    font-size: 0.62rem; color: rgba(240,230,200,0.55);
-    letter-spacing: 0.2em; margin-top: 0.4rem; text-transform: uppercase;
-  }
-  header::after {
-    content: '★';
-    position: absolute; right: -10px; top: -10px;
-    font-size: 120px; color: rgba(0,0,0,0.12); line-height: 1; pointer-events: none;
+  .logo span { color: var(--red); }
+  .admin-badge {
+    font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted); border: 1px solid var(--border);
+    padding: 0.3rem 0.7rem;
   }
 
   /* ── LAYOUT ── */
-  .student-layout { max-width: 600px; margin: 0 auto; padding: 1.5rem; }
+  .admin-layout {
+    display: grid; grid-template-columns: 1fr 380px;
+    gap: 1.5rem; padding: 1.5rem; max-width: 1200px; margin: 0 auto;
+  }
 
-  /* ── MISSION LIST HEADER ── */
-  .student-header { text-align: center; margin-bottom: 1.5rem; margin-top: 1.2rem; }
-  .classified-stamp {
-    display: inline-block; border: 3px solid var(--red); color: var(--red);
-    font-family: 'Special Elite', cursive; font-size: 1rem; letter-spacing: 0.15em;
-    padding: 0.2rem 0.8rem; transform: rotate(-2deg); opacity: 0.85; margin-bottom: 0.8rem;
+  /* ── PANELS ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    padding: 1.5rem;
   }
-  .student-header h2 { font-family: 'Special Elite', cursive; font-size: 1.4rem; color: var(--paper); letter-spacing: 0.04em; }
-  .student-header p { color: var(--muted); font-size: 0.72rem; letter-spacing: 0.1em; margin-top: 0.4rem; text-transform: uppercase; }
+  .panel-title {
+    font-family: 'Special Elite', cursive;
+    font-size: 0.95rem; color: var(--red);
+    letter-spacing: 0.06em; margin-bottom: 1.2rem;
+    padding-bottom: 0.6rem; border-bottom: 1px solid var(--border-light);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .panel-title-sub {
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.6rem; color: var(--muted);
+    letter-spacing: 0.1em; font-weight: 400;
+  }
 
-  /* ── MISSION CARDS ── */
-  .assignment-grid { display: grid; gap: 0.8rem; }
-  .student-card {
-    background: var(--paper); border: 1px solid var(--paper-dark);
-    border-left: 4px solid var(--red); padding: 1rem 1.2rem;
-    cursor: pointer; transition: all 0.2s;
-    display: flex; align-items: center; gap: 1rem;
-    position: relative; box-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+  /* ── FORM ── */
+  .form-group { margin-bottom: 1rem; }
+  label {
+    display: block; font-size: 0.62rem; color: var(--muted);
+    margin-bottom: 0.35rem; letter-spacing: 0.12em; text-transform: uppercase;
   }
-  .student-card:hover { box-shadow: 3px 3px 16px rgba(0,0,0,0.6); transform: translateX(3px); }
-  .student-num {
-    width: 42px; height: 42px; background: var(--red);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Special Elite', cursive; font-size: 1.1rem;
-    color: var(--paper); flex-shrink: 0;
+  input[type=text], input[type=number], textarea {
+    width: 100%; background: var(--surface2);
+    border: 1px solid var(--border-light);
+    color: var(--text); font-family: 'Courier Prime', monospace;
+    font-size: 0.9rem; padding: 0.6rem 0.8rem; outline: none;
+    transition: border-color 0.2s;
   }
-  .student-card-info { flex: 1; }
-  .student-card-name { font-family: 'Special Elite', cursive; font-size: 1rem; color: var(--ink); }
-  .student-card-desc { font-size: 0.75rem; color: #5a4020; margin-top: 0.3rem; line-height: 1.4; }
-  .student-card-mode { font-size: 0.62rem; letter-spacing: 0.1em; margin-top: 0.4rem; text-transform: uppercase; }
-  .student-card-mode.compass { color: #8a0f1e; }
-  .student-card-mode.map { color: #3a5a20; }
-  .card-arrow { font-size: 1.1rem; color: var(--red); flex-shrink: 0; }
+  input:focus, textarea:focus { border-color: var(--red); }
+  textarea { resize: vertical; min-height: 75px; }
+  .coords-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
 
-  /* ── STATES ── */
-  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); font-size: 0.8rem; border: 1px dashed var(--border); letter-spacing: 0.05em; }
-  .empty-state .big { font-size: 2rem; margin-bottom: 0.5rem; }
-  .loading { text-align: center; padding: 3rem; color: var(--muted); font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; animation: blink 1.2s infinite; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  /* ── MODE TOGGLE ── */
+  .mode-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; }
+  .mode-btn {
+    padding: 0.65rem; border: 1px solid var(--border-light);
+    background: var(--surface2); color: var(--muted); cursor: pointer;
+    font-family: 'Courier Prime', monospace; font-size: 0.8rem;
+    text-align: center; transition: all 0.2s; letter-spacing: 0.05em;
+  }
+  .mode-btn:hover { border-color: var(--red); color: var(--text); }
+  .mode-btn.active { background: var(--red); color: var(--paper); border-color: var(--red); }
 
-  /* ── TASK VIEW ── */
-  .task-view { display: none; }
-  .task-view.active { display: block; }
-  .back-btn {
-    display: inline-flex; align-items: center; gap: 0.5rem;
-    background: transparent; border: 1px solid var(--border); color: var(--muted);
-    padding: 0.45rem 0.9rem; font-size: 0.7rem; cursor: pointer;
-    margin-bottom: 1.5rem; transition: all 0.2s; letter-spacing: 0.1em; text-transform: uppercase;
-  }
-  .back-btn:hover { border-color: var(--red); color: var(--red); }
-
-  .dossier-card {
-    background: var(--paper); border: 1px solid var(--paper-dark);
-    box-shadow: 3px 3px 12px rgba(0,0,0,0.5); padding: 1.5rem;
-    margin-bottom: 1.5rem; position: relative;
-  }
-  .dossier-card::before {
-    content: 'DOSSIER RISERVATO'; position: absolute; top: 0.6rem; right: 0.8rem;
-    font-size: 0.55rem; color: var(--red); opacity: 0.5; letter-spacing: 0.15em;
-  }
-  .dossier-label { font-size: 0.6rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 0.3rem; }
-  .task-title {
-    font-family: 'Special Elite', cursive; font-size: 1.6rem; color: var(--ink);
-    margin-bottom: 0.6rem; line-height: 1.2; border-bottom: 2px solid var(--red); padding-bottom: 0.6rem;
-  }
-  .task-desc { color: #3a2810; font-size: 0.85rem; line-height: 1.7; margin-top: 0.6rem; }
-
-  /* ── DISTANCE ── */
-  .compass-container { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
-  .distance-display {
-    background: var(--paper); border: 1px solid var(--paper-dark);
-    box-shadow: 3px 3px 12px rgba(0,0,0,0.5); padding: 1.2rem 2rem; width: 100%; text-align: center; position: relative;
-  }
-  .distance-display::before {
-    content: ''; position: absolute; top: 6px; left: 6px; right: 6px; bottom: 6px;
-    border: 1px solid var(--paper-dark); pointer-events: none;
-  }
-  .distance-label { font-size: 0.6rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 0.3rem; }
-  .distance-value { font-family: 'Special Elite', cursive; font-size: 4rem; color: var(--red); line-height: 1; }
-  .distance-unit-label { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-top: 0.2rem; }
-
-  /* ── ACCURACY ── */
-  .accuracy-bar-wrap { margin-top: 1rem; border-top: 1px solid var(--paper-dark); padding-top: 0.8rem; }
-  .accuracy-label { display: flex; justify-content: space-between; font-size: 0.62rem; color: var(--muted); margin-bottom: 0.4rem; letter-spacing: 0.08em; text-transform: uppercase; }
-  .accuracy-track { height: 5px; background: var(--paper-dark); overflow: hidden; }
-  .accuracy-fill { height: 100%; transition: width 0.5s ease, background-color 0.5s ease; width: 0%; }
-
-  /* ── ARROW ── */
-  .arrow-wrapper { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
-  .arrow-ring {
-    width: 220px; height: 220px; border-radius: 50%;
-    background: var(--surface); border: 3px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 0 0 6px var(--bg), 0 0 0 7px var(--border), 4px 4px 20px rgba(0,0,0,0.6);
-    position: relative;
-  }
-  .arrow-ring::before { content: ''; position: absolute; inset: 12px; border-radius: 50%; border: 1px dashed rgba(107,76,30,0.4); }
-  .arrow-ring::after { content: ''; }
-  .arrow-rotate { transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; align-items: center; justify-content: center; }
-  .nav-arrow {
-    width: 0; height: 0;
-    border-left: 24px solid transparent; border-right: 24px solid transparent;
-    border-bottom: 96px solid var(--red);
-    filter: drop-shadow(0 0 10px rgba(192,21,42,0.5)); position: relative;
-  }
-  .nav-arrow::after {
-    content: ''; position: absolute; bottom: -96px; left: -16px;
-    width: 0; height: 0;
-    border-left: 16px solid transparent; border-right: 16px solid transparent;
-    border-top: 48px solid rgba(192,21,42,0.2);
-  }
-  .arrow-hint { font-size: 0.68rem; color: var(--muted); text-align: center; max-width: 240px; line-height: 1.6; letter-spacing: 0.06em; text-transform: uppercase; }
-
-  /* ── MAP ── */
-  .map-container { background: var(--paper); border: 1px solid var(--paper-dark); box-shadow: 3px 3px 12px rgba(0,0,0,0.5); overflow: hidden; }
-  .map-address-bar { padding: 0.9rem 1.2rem; display: flex; align-items: center; gap: 0.8rem; border-bottom: 2px solid var(--red); background: var(--paper); }
-  .map-address { font-family: 'Special Elite', cursive; font-size: 0.95rem; color: var(--ink); }
-  .map-coords { font-size: 0.68rem; color: var(--muted); margin-top: 0.2rem; letter-spacing: 0.05em; }
-  .map-iframe-wrap { width: 100%; height: 300px; }
-  .map-iframe-wrap iframe { width: 100%; height: 100%; border: none; filter: sepia(30%) contrast(90%); }
-  .maps-link { display: block; text-align: center; margin-top: 1rem; }
-  .maps-link a {
-    display: inline-block; padding: 0.75rem 1.5rem; background: var(--red); color: var(--paper);
-    font-family: 'Special Elite', cursive; font-size: 0.9rem; text-decoration: none;
+  /* ── BUTTONS ── */
+  .btn-primary {
+    width: 100%; padding: 0.8rem; margin-top: 0.5rem;
+    background: var(--red); color: var(--paper); border: none;
+    font-family: 'Special Elite', cursive; font-size: 0.95rem; cursor: pointer;
     letter-spacing: 0.05em; box-shadow: 3px 3px 0 var(--red-dim); transition: all 0.15s;
   }
-  .maps-link a:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--red-dim); }
+  .btn-primary:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--red-dim); }
+  .btn-secondary {
+    width: 100%; padding: 0.7rem; margin-top: 0.4rem;
+    background: transparent; border: 1px solid var(--border-light); color: var(--muted);
+    font-family: 'Courier Prime', monospace; font-size: 0.85rem; cursor: pointer;
+    transition: all 0.2s; letter-spacing: 0.05em;
+  }
+  .btn-secondary:hover { border-color: var(--muted); color: var(--text); }
+  .btn-danger {
+    background: var(--red-dim); color: var(--paper); border: none;
+    padding: 0.3rem 0.65rem; font-size: 0.75rem; cursor: pointer;
+    font-family: 'Courier Prime', monospace; transition: all 0.2s;
+  }
+  .btn-danger:hover { background: var(--red); }
 
-  /* ── PERMISSION ── */
-  .permission-box { background: var(--paper); border: 1px solid var(--paper-dark); box-shadow: 3px 3px 12px rgba(0,0,0,0.5); padding: 2rem; text-align: center; }
-  .permission-icon { font-size: 2.5rem; margin-bottom: 0.8rem; }
-  .permission-box h3 { font-family: 'Special Elite', cursive; color: var(--ink); margin-bottom: 0.5rem; font-size: 1.1rem; }
-  .permission-box p { color: #5a4020; font-size: 0.8rem; margin-bottom: 1.5rem; line-height: 1.6; }
-  .btn-start {
-    background: var(--red); color: var(--paper); border: none; padding: 0.85rem 2rem;
-    font-family: 'Special Elite', cursive; font-size: 1rem; cursor: pointer;
-    box-shadow: 3px 3px 0 var(--red-dim); letter-spacing: 0.05em; transition: all 0.15s;
+  /* ── GEO ── */
+  .geo-btn {
+    background: transparent; border: 1px solid var(--border-light); color: var(--muted);
+    padding: 0.35rem 0.7rem; font-size: 0.7rem; font-family: 'Courier Prime', monospace;
+    cursor: pointer; margin-top: 0.4rem; transition: all 0.2s;
+    letter-spacing: 0.05em;
   }
-  .btn-start:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--red-dim); }
+  .geo-btn:hover { border-color: var(--red); color: var(--red); }
+  .geo-hint { font-size: 0.68rem; color: var(--muted); margin-top: 0.3rem; letter-spacing: 0.05em; }
 
-  /* ── ARRIVED ── */
-  .arrived-banner {
-    background: var(--paper); border: 3px solid var(--red);
-    padding: 1.8rem 1.5rem 1.5rem; text-align: center; margin-top: 1.5rem;
-    box-shadow: 4px 4px 0 var(--red-dim); position: relative;
-    animation: pulse-red 2s infinite;
+  /* ── ASSIGNMENT LIST ── */
+  .assignment-list { display: flex; flex-direction: column; gap: 0.6rem; }
+
+  .assignment-card {
+    background: var(--surface2); border: 1px solid var(--border-light);
+    border-left: 3px solid transparent;
+    padding: 0.8rem 1rem;
+    display: flex; align-items: center; gap: 0.8rem;
+    cursor: pointer; transition: all 0.2s;
   }
-  .arrived-banner::before {
-    content: '★  OBIETTIVO RAGGIUNTO  ★';
-    position: absolute; top: -0.65rem; left: 50%; transform: translateX(-50%);
-    background: var(--red); color: var(--paper);
-    font-size: 0.55rem; padding: 0.1rem 0.6rem;
-    letter-spacing: 0.15em; white-space: nowrap;
+  .assignment-card:hover { border-left-color: var(--red); }
+  .assignment-card.editing { border-left-color: var(--red); background: rgba(192,21,42,0.06); }
+  .assignment-card.dragging { opacity: 0.4; border: 1px dashed var(--border); }
+  .assignment-card.drag-over { border-left-color: var(--muted); background: rgba(160,128,80,0.06); }
+
+  .drag-handle { cursor: grab; color: var(--border); font-size: 0.9rem; flex-shrink: 0; user-select: none; }
+  .drag-handle:active { cursor: grabbing; }
+
+  .card-num {
+    width: 28px; height: 28px; background: var(--surface); border: 1px solid var(--border-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; color: var(--red); flex-shrink: 0; font-family: 'Special Elite', cursive;
   }
-  @keyframes pulse-red {
-    0%,100% { box-shadow: 4px 4px 0 var(--red-dim); }
-    50% { box-shadow: 4px 4px 0 var(--red-dim), 0 0 24px rgba(192,21,42,0.3); }
+  .card-info { flex: 1; min-width: 0; }
+  .card-name {
+    font-family: 'Special Elite', cursive; font-size: 0.9rem; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .arrived-icon { font-size: 2rem; color: var(--red); }
-  .arrived-title { font-family: 'Special Elite', cursive; font-size: 1.2rem; color: var(--red); margin-top: 0.5rem; }
-  .arrived-sub { font-size: 0.75rem; color: #5a4020; margin-top: 0.4rem; }
+  .card-meta { font-size: 0.65rem; color: var(--muted); margin-top: 0.15rem; letter-spacing: 0.04em; }
+  .mode-badge {
+    font-size: 0.6rem; padding: 0.15rem 0.4rem; flex-shrink: 0;
+    letter-spacing: 0.06em; border: 1px solid;
+  }
+  .mode-badge.compass { border-color: rgba(160,128,80,0.4); color: var(--muted); }
+  .mode-badge.map { border-color: rgba(58,90,32,0.5); color: #6a9a40; }
+  .card-actions { display: flex; gap: 0.3rem; flex-shrink: 0; }
+
+  /* ── EMPTY / SAVING ── */
+  .empty-state {
+    text-align: center; padding: 2.5rem 1rem; color: var(--muted);
+    font-size: 0.75rem; border: 1px dashed var(--border-light);
+    letter-spacing: 0.08em; line-height: 1.8;
+  }
+  .saving-indicator { font-size: 0.65rem; color: var(--muted); text-align: center; margin-top: 0.5rem; min-height: 1rem; letter-spacing: 0.08em; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 2rem; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--surface); border: 1px solid var(--red); border-left: 3px solid var(--red);
+    color: var(--text); padding: 0.7rem 1.4rem;
+    font-size: 0.8rem; z-index: 999; letter-spacing: 0.05em;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.error { border-color: var(--red); color: #ff8080; }
+
+  @media (max-width: 768px) { .admin-layout { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="header-rule"></div>
-  <div class="header-rule-thin"></div>
-  <div class="header-inner">
-    <div class="header-eyebrow">Brigata Investigativa — Roma</div>
-    <div class="header-title">Operazione Moro</div>
-    <div class="header-sub">Documenti riservati · 1978</div>
-  </div>
-  <div class="header-rule-thin"></div>
-  <div class="header-rule"></div>
+  <div class="logo">Operazione <span>Moro</span> — Beheer</div>
+  <div class="admin-badge">⚙ Leerkracht</div>
 </header>
 
-<div class="student-layout">
-  <div id="student-picker">
-    <div class="student-header">
-      <div class="classified-stamp">Riservato</div>
-      <h2>Selecteer uw missie</h2>
-      <p>Kies een dossier om te beginnen</p>
+<div class="admin-layout">
+
+  <!-- Form panel -->
+  <div class="panel">
+    <div class="panel-title" id="form-panel-title">
+      Nieuwe opdracht
+      <span class="panel-title-sub">INVOER</span>
     </div>
-    <div class="assignment-grid" id="student-grid">
-      <div class="loading">▋ Dossiers laden...</div>
+
+    <div class="form-group">
+      <label>Naam opdracht</label>
+      <input type="text" id="inp-name" placeholder="bv. Via Caetani">
+    </div>
+
+    <div class="form-group">
+      <label>Beschrijving / instructie voor leerling</label>
+      <textarea id="inp-desc" placeholder="bv. Zoek de plek waar het lichaam van Moro werd gevonden..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Weergavemodus</label>
+      <div class="mode-toggle">
+        <div class="mode-btn active" id="mode-compass" onclick="selectMode('compass')">🧭 Peiling + afstand</div>
+        <div class="mode-btn" id="mode-map" onclick="selectMode('map')">🗺 Adres + kaartje</div>
+      </div>
+    </div>
+
+    <div class="form-group" id="group-address" style="display:none;">
+      <label>Adres (voor leerling zichtbaar)</label>
+      <input type="text" id="inp-address" placeholder="bv. Via Caetani, Roma">
+    </div>
+
+    <div class="form-group">
+      <label>GPS Coördinaten</label>
+      <div class="coords-row">
+        <input type="number" id="inp-lat" placeholder="Breedtegraad" step="0.000001">
+        <input type="number" id="inp-lng" placeholder="Lengtegraad" step="0.000001">
+      </div>
+      <button class="geo-btn" onclick="useCurrentLocation()">📍 Gebruik huidige locatie</button>
+      <div class="geo-hint" id="geo-hint"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Aankomstradius (meter)</label>
+      <input type="number" id="inp-radius" value="25" min="5" max="500">
+    </div>
+
+    <button class="btn-primary" onclick="saveAssignment()">Opdracht opslaan</button>
+    <button class="btn-secondary" onclick="cancelEdit()">Annuleren</button>
+    <div class="saving-indicator" id="saving-indicator"></div>
+  </div>
+
+  <!-- List panel -->
+  <div class="panel">
+    <div class="panel-title">
+      Opdrachten
+      <span class="panel-title-sub"><span id="count">0</span> DOSSIERS · SLEEP OM TE HERORDENEN</span>
+    </div>
+    <div class="assignment-list" id="assignment-list">
+      <div class="empty-state">Geen opdrachten.<br>Voeg er een toe.</div>
     </div>
   </div>
 
-  <div id="task-detail" class="task-view">
-    <button class="back-btn" onclick="backToList()">← Terug naar overzicht</button>
-    <div class="dossier-card">
-      <div class="dossier-label">Missie dossier</div>
-      <div class="task-title" id="task-title"></div>
-      <div class="task-desc" id="task-desc"></div>
-    </div>
-    <div id="task-content"></div>
-  </div>
 </div>
 
-<script>
-  // Request fullscreen on first interaction (browsers require user gesture)
-  document.addEventListener('click', function requestFS() {
-    const el = document.documentElement;
-    if (el.requestFullscreen) el.requestFullscreen();
-    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-    document.removeEventListener('click', requestFS);
-  }, { once: true });
-</script>
+<div class="toast" id="toast"></div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyC_2gs99Sao2zdxa_JsRd9fNUFg-MVcXgw",
@@ -292,234 +286,164 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  let assignments = [], activeAssignment = null;
-  let watchId = null, deviceHeading = null, currentLat = null, currentLng = null;
-  let gpsLat = null, gpsLng = null, gpsTimestamp = null;
-  let gpsSpeed = 0, gpsBearing = null, gpsAccuracy = null, interpFrame = null;
+  let assignments = [], selectedMode = 'compass', editingId = null, dragSrcIndex = null;
+
+  function toast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => t.className = 'toast', 2500);
+  }
+  function setSaving(msg) { document.getElementById('saving-indicator').textContent = msg; }
+
+  window.selectMode = function(m) {
+    selectedMode = m;
+    document.getElementById('mode-compass').classList.toggle('active', m === 'compass');
+    document.getElementById('mode-map').classList.toggle('active', m === 'map');
+    document.getElementById('group-address').style.display = m === 'map' ? 'block' : 'none';
+  };
+
+  window.useCurrentLocation = function() {
+    if (!navigator.geolocation) { toast('Geolocatie niet ondersteund', true); return; }
+    document.getElementById('geo-hint').textContent = 'Locatie ophalen...';
+    navigator.geolocation.getCurrentPosition(pos => {
+      document.getElementById('inp-lat').value = pos.coords.latitude.toFixed(6);
+      document.getElementById('inp-lng').value = pos.coords.longitude.toFixed(6);
+      document.getElementById('geo-hint').textContent = '✓ Locatie ingevuld';
+      setTimeout(() => document.getElementById('geo-hint').textContent = '', 2000);
+    }, () => { document.getElementById('geo-hint').textContent = '✗ Geen toegang'; });
+  };
 
   const q = query(collection(db, "assignments"), orderBy("order", "asc"));
   onSnapshot(q, snapshot => {
     assignments = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderStudentGrid();
-  }, err => {
-    document.getElementById('student-grid').innerHTML = `<div class="empty-state"><div class="big">⚠</div>Dossiers niet beschikbaar.<br>${err.message}</div>`;
+    document.getElementById('count').textContent = assignments.length;
+    renderAdminList();
   });
 
-  function renderStudentGrid() {
-    const grid = document.getElementById('student-grid');
+  window.saveAssignment = async function() {
+    const name = document.getElementById('inp-name').value.trim();
+    const desc = document.getElementById('inp-desc').value.trim();
+    const lat = parseFloat(document.getElementById('inp-lat').value);
+    const lng = parseFloat(document.getElementById('inp-lng').value);
+    const radius = parseInt(document.getElementById('inp-radius').value) || 25;
+    const address = document.getElementById('inp-address').value.trim();
+
+    if (!name) { toast('Voer een naam in', true); return; }
+    if (isNaN(lat) || isNaN(lng)) { toast('Voer geldige coördinaten in', true); return; }
+
+    setSaving('Opslaan...');
+    try {
+      const data = { name, desc, lat, lng, radius, mode: selectedMode, address };
+      if (editingId) {
+        await updateDoc(doc(db, "assignments", editingId), data);
+        toast('Opdracht bijgewerkt');
+      } else {
+        data.order = assignments.length;
+        await addDoc(collection(db, "assignments"), data);
+        toast('Opdracht toegevoegd');
+      }
+      setSaving(''); resetForm();
+    } catch (e) { setSaving(''); toast('Fout: ' + e.message, true); }
+  };
+
+  window.editAssignment = function(id) {
+    const a = assignments.find(x => x.id === id);
+    if (!a) return;
+    editingId = id;
+    document.getElementById('inp-name').value = a.name;
+    document.getElementById('inp-desc').value = a.desc || '';
+    document.getElementById('inp-lat').value = a.lat;
+    document.getElementById('inp-lng').value = a.lng;
+    document.getElementById('inp-radius').value = a.radius || 25;
+    document.getElementById('inp-address').value = a.address || '';
+    selectMode(a.mode || 'compass');
+    document.getElementById('form-panel-title').innerHTML = 'Opdracht bewerken <span class="panel-title-sub">BEWERKEN</span>';
+    document.querySelectorAll('.assignment-card').forEach(c => c.classList.remove('editing'));
+    document.getElementById('card-' + id)?.classList.add('editing');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  window.deleteAssignment = async function(id) {
+    if (!confirm('Opdracht verwijderen?')) return;
+    try {
+      await deleteDoc(doc(db, "assignments", id));
+      if (editingId === id) resetForm();
+      toast('Opdracht verwijderd');
+    } catch (e) { toast('Fout: ' + e.message, true); }
+  };
+
+  window.cancelEdit = resetForm;
+  function resetForm() {
+    editingId = null;
+    document.getElementById('inp-name').value = '';
+    document.getElementById('inp-desc').value = '';
+    document.getElementById('inp-lat').value = '';
+    document.getElementById('inp-lng').value = '';
+    document.getElementById('inp-radius').value = '25';
+    document.getElementById('inp-address').value = '';
+    document.getElementById('form-panel-title').innerHTML = 'Nieuwe opdracht <span class="panel-title-sub">INVOER</span>';
+    selectMode('compass');
+    document.querySelectorAll('.assignment-card').forEach(c => c.classList.remove('editing'));
+  }
+
+  function renderAdminList() {
+    const list = document.getElementById('assignment-list');
     if (!assignments.length) {
-      grid.innerHTML = `<div class="empty-state"><div class="big">📁</div>Geen dossiers beschikbaar.<br>Vraag uw commandant.</div>`;
+      list.innerHTML = `<div class="empty-state">Geen opdrachten.<br>Voeg er een toe.</div>`;
       return;
     }
-    grid.innerHTML = assignments.map((a, i) => `
-      <div class="student-card" onclick="openTask('${a.id}')">
-        <div class="student-num">${String(i+1).padStart(2,'0')}</div>
-        <div class="student-card-info">
-          <div class="student-card-name">${a.name}</div>
-          ${a.desc ? `<div class="student-card-desc">${a.desc.substring(0,80)}${a.desc.length>80?'…':''}</div>` : ''}
-          <div class="student-card-mode ${a.mode}">
-            ${a.mode === 'compass' ? '[ peiling + afstand ]' : '[ locatie zichtbaar ]'}
-          </div>
+    list.innerHTML = assignments.map((a, i) => `
+      <div class="assignment-card" id="card-${a.id}"
+        draggable="true"
+        ondragstart="dragStart(event,${i})"
+        ondragover="dragOver(event,${i})"
+        ondragleave="dragLeave(event)"
+        ondrop="dragDrop(event,${i})"
+        ondragend="dragEnd(event)"
+        onclick="editAssignment('${a.id}')">
+        <span class="drag-handle" title="Sleep om te herordenen">⠿</span>
+        <div class="card-num">${String(i+1).padStart(2,'0')}</div>
+        <div class="card-info">
+          <div class="card-name">${a.name}</div>
+          <div class="card-meta">${a.lat?.toFixed(4)}, ${a.lng?.toFixed(4)} · r=${a.radius}m</div>
         </div>
-        <div class="card-arrow">›</div>
+        <span class="mode-badge ${a.mode}">${a.mode === 'compass' ? 'peiling' : 'kaart'}</span>
+        <div class="card-actions" onclick="event.stopPropagation()">
+          <button class="btn-danger" onclick="deleteAssignment('${a.id}')">✕</button>
+        </div>
       </div>
     `).join('');
   }
 
-  window.openTask = function(id) {
-    activeAssignment = assignments.find(a => a.id === id);
-    if (!activeAssignment) return;
-    document.getElementById('student-picker').style.display = 'none';
-    document.getElementById('task-detail').classList.add('active');
-    document.getElementById('task-title').textContent = activeAssignment.name;
-    document.getElementById('task-desc').textContent = activeAssignment.desc || '';
-    if (activeAssignment.mode === 'compass') renderCompassMode();
-    else renderMapMode();
+  window.dragStart = function(e, i) {
+    dragSrcIndex = i;
+    setTimeout(() => e.target.closest('.assignment-card').classList.add('dragging'), 0);
   };
-
-  window.backToList = function() {
-    stopTracking();
-    document.getElementById('student-picker').style.display = '';
-    document.getElementById('task-detail').classList.remove('active');
-    activeAssignment = null;
+  window.dragOver = function(e, i) {
+    e.preventDefault();
+    document.querySelectorAll('.assignment-card').forEach(c => c.classList.remove('drag-over'));
+    if (i !== dragSrcIndex) e.target.closest('.assignment-card')?.classList.add('drag-over');
   };
-
-  function renderMapMode() {
-    const a = activeAssignment;
-    const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${a.lng-0.003},${a.lat-0.003},${a.lng+0.003},${a.lat+0.003}&layer=mapnik&marker=${a.lat},${a.lng}`;
-    document.getElementById('task-content').innerHTML = `
-      <div class="map-container">
-        <div class="map-address-bar">
-          <div style="font-size:1.2rem">📍</div>
-          <div>
-            <div class="map-address">${a.address || 'Locatie onbekend'}</div>
-            <div class="map-coords">${a.lat.toFixed(5)}° N · ${a.lng.toFixed(5)}° E</div>
-          </div>
-        </div>
-        <div class="map-iframe-wrap">
-          <iframe src="${mapUrl}" loading="lazy"></iframe>
-        </div>
-      </div>
-      <div class="maps-link">
-        <a href="https://www.google.com/maps?q=${a.lat},${a.lng}" target="_blank">↗ Open in Google Maps</a>
-      </div>`;
-  }
-
-  function renderCompassMode() {
-    document.getElementById('task-content').innerHTML = `
-      <div class="permission-box" id="perm-box">
-        <div class="permission-icon">🧭</div>
-        <h3>Locatietoegang vereist</h3>
-        <p>Om de peiling en afstand te bepalen heeft uw apparaat toegang nodig tot de GPS-locatie.</p>
-        <button class="btn-start" onclick="startCompass()">Activeer navigatie</button>
-      </div>
-      <div class="compass-container" id="compass-ui" style="display:none;">
-        <div class="distance-display">
-          <div class="distance-label">Afstand tot bewijsmateriaal</div>
-          <div class="distance-value" id="dist-val">—</div>
-          <div class="distance-unit-label" id="dist-unit">GPS verbinding zoeken...</div>
-          <div class="accuracy-bar-wrap" id="accuracy-wrap" style="display:none;">
-            <div class="accuracy-label"><span>Signaalsterkte</span><span id="accuracy-text">—</span></div>
-            <div class="accuracy-track"><div class="accuracy-fill" id="accuracy-fill"></div></div>
-          </div>
-        </div>
-        <div class="arrow-wrapper">
-          <div class="arrow-ring">
-            <div class="arrow-rotate" id="arrow-rotate">
-              <div class="nav-arrow"></div>
-            </div>
-          </div>
-          <div class="arrow-hint" id="compass-status">▋ Signaal zoeken...</div>
-        </div>
-        <div id="arrived-wrap"></div>
-      </div>`;
-  }
-
-  window.startCompass = function() {
-    document.getElementById('perm-box').style.display = 'none';
-    document.getElementById('compass-ui').style.display = 'flex';
-    startTracking();
+  window.dragLeave = function(e) { e.target.closest('.assignment-card')?.classList.remove('drag-over'); };
+  window.dragDrop = async function(e, targetIndex) {
+    e.preventDefault();
+    if (dragSrcIndex === null || dragSrcIndex === targetIndex) return;
+    const reordered = [...assignments];
+    const [moved] = reordered.splice(dragSrcIndex, 1);
+    reordered.splice(targetIndex, 0, moved);
+    setSaving('Volgorde opslaan...');
+    try {
+      const batch = writeBatch(db);
+      reordered.forEach((a, idx) => batch.update(doc(db, "assignments", a.id), { order: idx }));
+      await batch.commit();
+      setSaving('');
+    } catch (e) { setSaving(''); toast('Fout bij herordenen', true); }
   };
-
-  function deg2rad(d) { return d * Math.PI / 180; }
-  function haversine(lat1, lng1, lat2, lng2) {
-    const R = 6371000, dLat = deg2rad(lat2-lat1), dLng = deg2rad(lng2-lng1);
-    const a = Math.sin(dLat/2)**2 + Math.cos(deg2rad(lat1))*Math.cos(deg2rad(lat2))*Math.sin(dLng/2)**2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  }
-  function bearing(lat1, lng1, lat2, lng2) {
-    const dLng = deg2rad(lng2-lng1);
-    const y = Math.sin(dLng)*Math.cos(deg2rad(lat2));
-    const x = Math.cos(deg2rad(lat1))*Math.sin(deg2rad(lat2)) - Math.sin(deg2rad(lat1))*Math.cos(deg2rad(lat2))*Math.cos(dLng);
-    return (Math.atan2(y,x)*180/Math.PI+360)%360;
-  }
-
-  function startTracking() {
-    if (!navigator.geolocation) return;
-    watchId = navigator.geolocation.watchPosition(pos => {
-      const newLat = pos.coords.latitude, newLng = pos.coords.longitude;
-      gpsAccuracy = pos.coords.accuracy;
-      if (gpsLat !== null) {
-        const dt = (pos.timestamp - gpsTimestamp) / 1000;
-        if (dt > 0) {
-          const d = haversine(gpsLat, gpsLng, newLat, newLng);
-          gpsSpeed = d / dt;
-          if (d > 1) gpsBearing = bearing(gpsLat, gpsLng, newLat, newLng);
-        }
-      }
-      if (pos.coords.heading !== null && !isNaN(pos.coords.heading) && pos.coords.speed > 0.3) {
-        deviceHeading = pos.coords.heading; gpsBearing = pos.coords.heading; gpsSpeed = pos.coords.speed;
-      }
-      gpsLat = newLat; gpsLng = newLng; gpsTimestamp = pos.timestamp;
-      currentLat = gpsLat; currentLng = gpsLng;
-      updateAccuracyUI(); updateCompassUI(); startInterpolation();
-    }, err => {
-      const s = document.getElementById('compass-status');
-      if (s) { s.textContent = '✗ GPS fout: ' + err.message; s.style.color = '#c0152a'; }
-    }, { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 });
-
-    const handler = e => {
-      if (e.webkitCompassHeading !== undefined && e.webkitCompassHeading !== null) deviceHeading = e.webkitCompassHeading;
-      else if (e.absolute && e.alpha !== null) deviceHeading = (360 - e.alpha) % 360;
-      updateCompassUI();
-    };
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      DeviceOrientationEvent.requestPermission().then(s => { if (s === 'granted') window.addEventListener('deviceorientation', handler, true); });
-    } else {
-      window.addEventListener('deviceorientationabsolute', handler, true);
-      window.addEventListener('deviceorientation', handler, true);
-    }
-  }
-
-  function startInterpolation() {
-    if (interpFrame) cancelAnimationFrame(interpFrame);
-    const step = () => {
-      if (!gpsLat || !gpsBearing || gpsSpeed < 0.3) return;
-      const age = (Date.now() - gpsTimestamp) / 1000;
-      if (age > 8) return;
-      const R = 6371000, d = gpsSpeed * age;
-      const bR = deg2rad(gpsBearing), laR = deg2rad(gpsLat), loR = deg2rad(gpsLng);
-      const nlaR = Math.asin(Math.sin(laR)*Math.cos(d/R) + Math.cos(laR)*Math.sin(d/R)*Math.cos(bR));
-      const nloR = loR + Math.atan2(Math.sin(bR)*Math.sin(d/R)*Math.cos(laR), Math.cos(d/R)-Math.sin(laR)*Math.sin(nlaR));
-      currentLat = nlaR * 180/Math.PI; currentLng = nloR * 180/Math.PI;
-      updateCompassUI();
-      interpFrame = requestAnimationFrame(step);
-    };
-    interpFrame = requestAnimationFrame(step);
-  }
-
-  function updateAccuracyUI() {
-    const wrap = document.getElementById('accuracy-wrap');
-    const fill = document.getElementById('accuracy-fill');
-    const text = document.getElementById('accuracy-text');
-    if (!wrap || !fill || !text || gpsAccuracy === null) return;
-    wrap.style.display = 'block';
-    const pct = Math.max(0, Math.min(100, 100 - ((gpsAccuracy - 3) / 47) * 100));
-    fill.style.width = pct + '%';
-    if (gpsAccuracy <= 8) { fill.style.backgroundColor = '#3a7a30'; text.textContent = `Uitstekend (±${Math.round(gpsAccuracy)}m)`; text.style.color = '#3a7a30'; }
-    else if (gpsAccuracy <= 20) { fill.style.backgroundColor = '#a07020'; text.textContent = `Redelijk (±${Math.round(gpsAccuracy)}m)`; text.style.color = '#a07020'; }
-    else { fill.style.backgroundColor = '#c0152a'; text.textContent = `Zwak (±${Math.round(gpsAccuracy)}m)`; text.style.color = '#c0152a'; }
-  }
-
-  function stopTracking() {
-    if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
-    if (interpFrame) { cancelAnimationFrame(interpFrame); interpFrame = null; }
-    deviceHeading = null; currentLat = null; currentLng = null;
-    gpsLat = null; gpsLng = null; gpsTimestamp = null; gpsSpeed = 0; gpsBearing = null;
-  }
-
-  function updateCompassUI() {
-    if (!activeAssignment || currentLat === null) return;
-    const a = activeAssignment;
-    const dist = haversine(currentLat, currentLng, a.lat, a.lng);
-    const bear = bearing(currentLat, currentLng, a.lat, a.lng);
-
-    const distVal = document.getElementById('dist-val');
-    const distUnit = document.getElementById('dist-unit');
-    if (distVal) {
-      if (dist >= 1000) {
-        distVal.textContent = (dist/1000).toFixed(2);
-        distUnit.textContent = 'kilometer';
-      } else {
-        distVal.textContent = Math.round(dist);
-        distUnit.textContent = 'meter';
-      }
-    }
-
-    const arrow = document.getElementById('arrow-rotate');
-    if (arrow) arrow.style.transform = `rotate(${deviceHeading !== null ? bear - deviceHeading : bear}deg)`;
-
-    const status = document.getElementById('compass-status');
-    if (status) {
-      status.textContent = deviceHeading !== null ? '✓ Stap in deze richting' : '⚠ Geen kompas — beweeg voor richting';
-      status.style.color = 'var(--muted)';
-    }
-
-    const arrivedWrap = document.getElementById('arrived-wrap');
-    if (arrivedWrap && dist <= a.radius && !arrivedWrap.innerHTML) {
-      arrivedWrap.innerHTML = `<div class="arrived-banner"><div class="arrived-icon">★</div><div class="arrived-title">Obiettivo Raggiunto</div><div class="arrived-sub">U bevindt zich op de doellocatie.</div></div>`;
-    }
-  }
+  window.dragEnd = function(e) {
+    document.querySelectorAll('.assignment-card').forEach(c => { c.classList.remove('dragging'); c.classList.remove('drag-over'); });
+    dragSrcIndex = null;
+  };
 </script>
 </body>
 </html>
