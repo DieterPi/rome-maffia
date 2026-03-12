@@ -92,11 +92,13 @@
   .task-view.active { display: block; }
   .back-btn {
     display: inline-flex; align-items: center; gap: 0.5rem;
-    background: transparent; border: 1px solid var(--border); color: var(--muted);
-    padding: 0.5rem 1rem; font-size: 0.8rem; cursor: pointer;
-    margin-bottom: 1.5rem; transition: all 0.2s; letter-spacing: 0.1em; text-transform: uppercase;
+    background: var(--red); color: var(--paper);
+    border: none; padding: 0.6rem 1.2rem; font-size: 0.85rem; cursor: pointer;
+    margin-bottom: 1.5rem; transition: all 0.15s; letter-spacing: 0.1em; text-transform: uppercase;
+    font-family: 'Special Elite', cursive;
+    box-shadow: 3px 3px 0 var(--red-dim);
   }
-  .back-btn:hover { border-color: var(--red); color: var(--red); }
+  .back-btn:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--red-dim); }
 
   .dossier-card {
     background: var(--paper); border: 1px solid var(--paper-dark);
@@ -343,19 +345,30 @@
       attribution: '© OpenStreetMap'
     }).addTo(leafletMap);
 
-    // Target marker — standaard Leaflet pin
-    L.marker([a.lat, a.lng]).addTo(leafletMap);
+    // Target marker — zelfde symbool als in de adresbalk
+    const symbol = a.symbol || '📍';
+    const targetIcon = L.divIcon({
+      className: '',
+      html: `<div style="
+        font-size:2rem;line-height:1;
+        filter:drop-shadow(1px 2px 2px rgba(0,0,0,0.5));
+        transform:translateY(-50%);
+      ">${symbol}</div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 36],
+    });
+    L.marker([a.lat, a.lng], { icon: targetIcon }).addTo(leafletMap);
 
-    // Live player location
+    // Live player location — rode stip met witte rand
     if (navigator.geolocation) {
       const playerIcon = L.divIcon({
         className: '',
         html: `<div style="
           width:18px;height:18px;
-          background:#1a4a8a;
+          background:#c0152a;
           border:3px solid #f0e6c8;
           border-radius:50%;
-          box-shadow:0 0 0 4px rgba(26,74,138,0.35), 0 2px 6px rgba(0,0,0,0.4);
+          box-shadow:0 0 0 4px rgba(192,21,42,0.3), 0 2px 6px rgba(0,0,0,0.4);
         "></div>`,
         iconSize: [18, 18],
         iconAnchor: [9, 9],
