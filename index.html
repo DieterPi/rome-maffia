@@ -182,6 +182,17 @@
   }
   .btn-start:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--red-dim); }
 
+  /* ── AUDIO PLAYER ── */
+  .audio-player {
+    margin-top: 1.2rem; border-top: 1px solid var(--paper-dark); padding-top: 1rem;
+  }
+  .audio-label { font-size: 0.65rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 0.5rem; }
+  .audio-player audio {
+    width: 100%; height: 36px;
+    filter: sepia(40%) contrast(90%);
+    accent-color: var(--red);
+  }
+
   /* ── ARRIVED ── */
   .arrived-banner {
     background: var(--paper); border: 3px solid var(--red);
@@ -334,7 +345,8 @@
           </div>
         </div>
         <div id="leaflet-map"></div>
-      </div>`;
+      </div>
+      <div id="map-arrived-wrap"></div>`;
 
     // Init Leaflet map
     leafletMap = L.map('leaflet-map', { zoomControl: true, attributionControl: false }).setView([a.lat, a.lng], 17);
@@ -359,7 +371,7 @@
     });
     L.marker([a.lat, a.lng], { icon: targetIcon }).addTo(leafletMap);
 
-    // Live player location — rode stip met witte rand
+    // Live player location — rode stip met witte rand + aankomstdetectie
     if (navigator.geolocation) {
       const playerIcon = L.divIcon({
         className: '',
@@ -374,12 +386,32 @@
         iconAnchor: [9, 9],
       });
 
+      let mapArrived = false;
       watchId = navigator.geolocation.watchPosition(pos => {
         const { latitude: lat, longitude: lng } = pos.coords;
         if (!playerMarker) {
           playerMarker = L.marker([lat, lng], { icon: playerIcon }).addTo(leafletMap);
         } else {
           playerMarker.setLatLng([lat, lng]);
+        }
+
+        // Aankomstdetectie
+        if (!mapArrived) {
+          const dist = haversine(lat, lng, a.lat, a.lng);
+          if (dist <= a.radius) {
+            mapArrived = true;
+            const wrap = document.getElementById('map-arrived-wrap');
+            if (wrap) wrap.innerHTML = `
+              <div class="arrived-banner">
+                <div class="arrived-icon">${a.symbol || '★'}</div>
+                <div class="arrived-title">Obiettivo Raggiunto</div>
+                <div class="arrived-sub">U bevindt zich op de doellocatie.</div>
+                ${a.audio ? `<div class="audio-player">
+                  <div class="audio-label">▶ Intercepted transmission</div>
+                  <audio controls src="${a.audio}"></audio>
+                </div>` : ''}
+              </div>`;
+          }
         }
       }, null, { enableHighAccuracy: true, maximumAge: 0 });
     }
@@ -531,7 +563,16 @@
 
     const arrivedWrap = document.getElementById('arrived-wrap');
     if (arrivedWrap && dist <= a.radius && !arrivedWrap.innerHTML) {
-      arrivedWrap.innerHTML = `<div class="arrived-banner"><div class="arrived-icon">${a.symbol || '★'}</div><div class="arrived-title">Obiettivo Raggiunto</div><div class="arrived-sub">U bevindt zich op de doellocatie.</div></div>`;
+      arrivedWrap.innerHTML = `
+        <div class="arrived-banner">
+          <div class="arrived-icon">${a.symbol || '★'}</div>
+          <div class="arrived-title">Obiettivo Raggiunto</div>
+          <div class="arrived-sub">U bevindt zich op de doellocatie.</div>
+          ${a.audio ? `<div class="audio-player">
+            <div class="audio-label">▶ Intercepted transmission</div>
+            <audio controls src="${a.audio}"></audio>
+          </div>` : ''}
+        </div>`;
     }
   }
 </script>
