@@ -343,34 +343,27 @@
       attribution: '© OpenStreetMap'
     }).addTo(leafletMap);
 
-    // Target marker — symbol or red circle
-    const targetIcon = L.divIcon({
-      className: 'custom-target-icon',
-      html: `<div style="
-        width:36px;height:36px;background:#c0152a;
-        display:flex;align-items:center;justify-content:center;
-        font-size:1.3rem;color:#f0e6c8;
-        box-shadow:2px 2px 0 #8a0f1e;
-      ">${a.symbol || '★'}</div>`,
-      iconSize: [36, 36],
-      iconAnchor: [18, 18],
-    });
-    L.marker([a.lat, a.lng], { icon: targetIcon }).addTo(leafletMap);
+    // Target marker — standaard Leaflet pin
+    L.marker([a.lat, a.lng]).addTo(leafletMap);
 
     // Live player location
     if (navigator.geolocation) {
+      const playerIcon = L.divIcon({
+        className: '',
+        html: `<div style="
+          width:18px;height:18px;
+          background:#1a4a8a;
+          border:3px solid #f0e6c8;
+          border-radius:50%;
+          box-shadow:0 0 0 4px rgba(26,74,138,0.35), 0 2px 6px rgba(0,0,0,0.4);
+        "></div>`,
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
+      });
+
       watchId = navigator.geolocation.watchPosition(pos => {
         const { latitude: lat, longitude: lng } = pos.coords;
         if (!playerMarker) {
-          const playerIcon = L.divIcon({
-            className: 'custom-player-icon',
-            html: `<div style="
-              width:16px;height:16px;background:#1a4a8a;border:3px solid #f0e6c8;
-              border-radius:50%;box-shadow:0 0 0 4px rgba(26,74,138,0.3);
-            "></div>`,
-            iconSize: [16, 16],
-            iconAnchor: [8, 8],
-          });
           playerMarker = L.marker([lat, lng], { icon: playerIcon }).addTo(leafletMap);
         } else {
           playerMarker.setLatLng([lat, lng]);
