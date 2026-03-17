@@ -7,22 +7,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #1a1208;
-    --surface: #231a0a;
-    --surface2: #2e2210;
-    --border: #6b4c1e;
-    --border-light: #4a3010;
-    --red: #c0152a;
-    --red-dim: #8a0f1e;
-    --text: #f0e6c8;
-    --muted: #a08050;
-    --paper: #f0e6c8;
-    --paper-dark: #d9cc9a;
-    --ink: #1a1208;
+    --bg: #1a1208; --surface: #231a0a; --surface2: #2e2210;
+    --border: #6b4c1e; --border-light: #4a3010;
+    --red: #c0152a; --red-dim: #8a0f1e;
+    --text: #f0e6c8; --muted: #a08050; --paper: #f0e6c8;
+    --green: #6a9a40; --green-dim: #3a5a20;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   body {
     font-family: 'Courier Prime', monospace;
     background: var(--bg); color: var(--text); min-height: 100vh;
@@ -30,26 +21,25 @@
   }
 
   /* ── HEADER ── */
-  header {
-    background: var(--surface); border-bottom: 2px solid var(--red);
-    padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;
-    position: sticky; top: 0; z-index: 100;
-  }
+  header { background: var(--surface); border-bottom: 2px solid var(--red); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
   .logo { font-family: 'Special Elite', cursive; font-size: 1.3rem; color: var(--text); letter-spacing: 0.04em; }
   .logo span { color: var(--red); }
   .admin-badge { font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--border); padding: 0.3rem 0.7rem; }
+
+  /* ── TABS ── */
+  .tabs { display: flex; border-bottom: 1px solid var(--border-light); padding: 0 1.5rem; background: var(--surface); }
+  .tab-btn { padding: 0.7rem 1.2rem; font-family: 'Courier Prime', monospace; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; }
+  .tab-btn.active { color: var(--red); border-bottom-color: var(--red); }
+  .tab-btn:hover:not(.active) { color: var(--text); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
 
   /* ── LAYOUT ── */
   .admin-layout { display: grid; grid-template-columns: 1fr 400px; gap: 1.5rem; padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
 
   /* ── PANELS ── */
   .panel { background: var(--surface); border: 1px solid var(--border-light); padding: 1.5rem; }
-  .panel-title {
-    font-family: 'Special Elite', cursive; font-size: 1.05rem; color: var(--red);
-    letter-spacing: 0.06em; margin-bottom: 1.2rem;
-    padding-bottom: 0.6rem; border-bottom: 1px solid var(--border-light);
-    display: flex; align-items: center; justify-content: space-between;
-  }
+  .panel-title { font-family: 'Special Elite', cursive; font-size: 1.05rem; color: var(--red); letter-spacing: 0.06em; margin-bottom: 1.2rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; justify-content: space-between; }
   .panel-title-sub { font-family: 'Courier Prime', monospace; font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; font-weight: 400; }
 
   /* ── FORM ── */
@@ -64,107 +54,90 @@
   textarea { resize: vertical; min-height: 80px; }
   .coords-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
 
-  /* ── SYMBOL INPUT ── */
+  /* ── SYMBOL ── */
   .symbol-row { display: grid; grid-template-columns: 64px 1fr; gap: 0.8rem; align-items: start; }
-  .symbol-preview {
-    width: 64px; height: 64px; background: var(--red);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 2rem; color: var(--paper); flex-shrink: 0;
-    border: 1px solid var(--red-dim);
-  }
+  .symbol-preview { width: 64px; height: 64px; background: var(--red); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--paper); flex-shrink: 0; border: 1px solid var(--red-dim); }
   .symbol-input-wrap { display: flex; flex-direction: column; gap: 0.5rem; }
   .symbol-input-wrap input { font-size: 1.5rem; text-align: center; }
   .symbol-hint { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.05em; line-height: 1.5; }
   .symbol-presets { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.3rem; }
-  .symbol-preset {
-    width: 32px; height: 32px; background: var(--surface2); border: 1px solid var(--border-light);
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
-    font-size: 1rem; transition: all 0.15s; color: var(--text);
-  }
+  .symbol-preset { width: 32px; height: 32px; background: var(--surface2); border: 1px solid var(--border-light); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: all 0.15s; color: var(--text); }
   .symbol-preset:hover { background: var(--red); border-color: var(--red); }
 
   /* ── MODE TOGGLE ── */
   .mode-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; }
-  .mode-btn {
-    padding: 0.7rem; border: 1px solid var(--border-light);
-    background: var(--surface2); color: var(--muted); cursor: pointer;
-    font-family: 'Courier Prime', monospace; font-size: 0.85rem;
-    text-align: center; transition: all 0.2s; letter-spacing: 0.05em;
-  }
+  .mode-btn { padding: 0.7rem; border: 1px solid var(--border-light); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: 'Courier Prime', monospace; font-size: 0.85rem; text-align: center; transition: all 0.2s; letter-spacing: 0.05em; }
   .mode-btn:hover { border-color: var(--red); color: var(--text); }
   .mode-btn.active { background: var(--red); color: var(--paper); border-color: var(--red); }
 
+  /* ── UNLOCK SELECTOR ── */
+  .unlock-hint { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.05em; line-height: 1.5; margin-bottom: 0.5rem; }
+  .unlock-list { display: flex; flex-direction: column; gap: 0.3rem; max-height: 160px; overflow-y: auto; padding: 0.2rem; }
+  .unlock-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0.6rem; background: var(--surface2); border: 1px solid var(--border-light); cursor: pointer; transition: all 0.15s; }
+  .unlock-item:hover { border-color: var(--muted); }
+  .unlock-item.selected { border-color: var(--green); background: rgba(106,154,64,0.1); }
+  .unlock-item-symbol { font-size: 0.9rem; width: 20px; text-align: center; flex-shrink: 0; }
+  .unlock-item-name { font-size: 0.82rem; flex: 1; }
+  .unlock-check { width: 14px; height: 14px; border: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; }
+  .unlock-item.selected .unlock-check { background: var(--green); border-color: var(--green); color: var(--paper); }
+
   /* ── BUTTONS ── */
-  .btn-primary {
-    width: 100%; padding: 0.85rem; margin-top: 0.5rem;
-    background: var(--red); color: var(--paper); border: none;
-    font-family: 'Special Elite', cursive; font-size: 1rem; cursor: pointer;
-    letter-spacing: 0.05em; box-shadow: 3px 3px 0 var(--red-dim); transition: all 0.15s;
-  }
+  .btn-primary { width: 100%; padding: 0.85rem; margin-top: 0.5rem; background: var(--red); color: var(--paper); border: none; font-family: 'Special Elite', cursive; font-size: 1rem; cursor: pointer; letter-spacing: 0.05em; box-shadow: 3px 3px 0 var(--red-dim); transition: all 0.15s; }
   .btn-primary:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--red-dim); }
-  .btn-secondary {
-    width: 100%; padding: 0.75rem; margin-top: 0.4rem;
-    background: transparent; border: 1px solid var(--border-light); color: var(--muted);
-    font-family: 'Courier Prime', monospace; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;
-  }
+  .btn-secondary { width: 100%; padding: 0.75rem; margin-top: 0.4rem; background: transparent; border: 1px solid var(--border-light); color: var(--muted); font-family: 'Courier Prime', monospace; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; }
   .btn-secondary:hover { border-color: var(--muted); color: var(--text); }
-  .btn-danger {
-    background: var(--red-dim); color: var(--paper); border: none;
-    padding: 0.35rem 0.7rem; font-size: 0.8rem; cursor: pointer;
-    font-family: 'Courier Prime', monospace; transition: all 0.2s;
-  }
+  .btn-danger { background: var(--red-dim); color: var(--paper); border: none; padding: 0.35rem 0.7rem; font-size: 0.8rem; cursor: pointer; font-family: 'Courier Prime', monospace; transition: all 0.2s; }
   .btn-danger:hover { background: var(--red); }
+  .btn-small { padding: 0.3rem 0.6rem; font-size: 0.7rem; font-family: 'Courier Prime', monospace; cursor: pointer; border: 1px solid var(--border-light); background: var(--surface2); color: var(--muted); transition: all 0.2s; letter-spacing: 0.05em; }
+  .btn-small:hover { border-color: var(--red); color: var(--red); }
+  .btn-small.green { border-color: var(--green-dim); color: var(--green); }
+  .btn-small.green:hover { background: rgba(106,154,64,0.1); }
 
   /* ── GEO ── */
-  .geo-btn {
-    background: transparent; border: 1px solid var(--border-light); color: var(--muted);
-    padding: 0.4rem 0.8rem; font-size: 0.75rem; font-family: 'Courier Prime', monospace;
-    cursor: pointer; margin-top: 0.4rem; transition: all 0.2s; letter-spacing: 0.05em;
-  }
+  .geo-btn { background: transparent; border: 1px solid var(--border-light); color: var(--muted); padding: 0.4rem 0.8rem; font-size: 0.75rem; font-family: 'Courier Prime', monospace; cursor: pointer; margin-top: 0.4rem; transition: all 0.2s; letter-spacing: 0.05em; }
   .geo-btn:hover { border-color: var(--red); color: var(--red); }
   .geo-hint { font-size: 0.72rem; color: var(--muted); margin-top: 0.3rem; letter-spacing: 0.05em; }
 
   /* ── ASSIGNMENT LIST ── */
   .assignment-list { display: flex; flex-direction: column; gap: 0.6rem; }
-  .assignment-card {
-    background: var(--surface2); border: 1px solid var(--border-light);
-    border-left: 3px solid transparent; padding: 0.85rem 1rem;
-    display: flex; align-items: center; gap: 0.9rem;
-    cursor: pointer; transition: all 0.2s;
-  }
+  .assignment-card { background: var(--surface2); border: 1px solid var(--border-light); border-left: 3px solid transparent; padding: 0.85rem 1rem; display: flex; align-items: center; gap: 0.9rem; cursor: pointer; transition: all 0.2s; }
   .assignment-card:hover { border-left-color: var(--red); }
   .assignment-card.editing { border-left-color: var(--red); background: rgba(192,21,42,0.06); }
   .assignment-card.dragging { opacity: 0.4; border: 1px dashed var(--border); }
   .assignment-card.drag-over { border-left-color: var(--muted); background: rgba(160,128,80,0.06); }
-
   .drag-handle { cursor: grab; color: var(--border); font-size: 1rem; flex-shrink: 0; user-select: none; }
   .drag-handle:active { cursor: grabbing; }
-
-  .card-symbol {
-    width: 36px; height: 36px; background: var(--red);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem; color: var(--paper); flex-shrink: 0;
-  }
+  .card-symbol { width: 36px; height: 36px; background: var(--red); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: var(--paper); flex-shrink: 0; }
   .card-info { flex: 1; min-width: 0; }
   .card-name { font-family: 'Special Elite', cursive; font-size: 1rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .card-meta { font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem; letter-spacing: 0.04em; }
+  .card-meta { font-size: 0.68rem; color: var(--muted); margin-top: 0.15rem; letter-spacing: 0.04em; }
+  .card-unlock-info { font-size: 0.65rem; color: var(--green); margin-top: 0.1rem; letter-spacing: 0.04em; }
   .mode-badge { font-size: 0.65rem; padding: 0.15rem 0.45rem; flex-shrink: 0; letter-spacing: 0.06em; border: 1px solid; }
   .mode-badge.compass { border-color: rgba(160,128,80,0.4); color: var(--muted); }
-  .mode-badge.map { border-color: rgba(58,90,32,0.5); color: #6a9a40; }
+  .mode-badge.map { border-color: rgba(58,90,32,0.5); color: var(--green); }
   .card-actions { display: flex; gap: 0.3rem; flex-shrink: 0; }
+
+  /* ── GROUP OVERVIEW ── */
+  .groups-layout { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
+  .groups-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+  .group-card { background: var(--surface); border: 1px solid var(--border-light); padding: 1.2rem; }
+  .group-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.8rem; }
+  .group-card-name { font-family: 'Special Elite', cursive; font-size: 1.05rem; color: var(--text); }
+  .group-card-count { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.08em; }
+  .group-progress-bar { height: 4px; background: var(--surface2); margin-bottom: 0.8rem; }
+  .group-progress-fill { height: 100%; background: var(--green); transition: width 0.4s; }
+  .group-visited { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.8rem; min-height: 28px; }
+  .group-visited-chip { background: rgba(106,154,64,0.15); border: 1px solid var(--green-dim); color: var(--green); font-size: 0.65rem; padding: 0.15rem 0.4rem; letter-spacing: 0.04em; }
+  .group-empty { font-size: 0.72rem; color: var(--muted); font-style: italic; letter-spacing: 0.05em; }
+  .group-lastseen { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.05em; margin-bottom: 0.8rem; }
+  .group-actions { display: flex; gap: 0.5rem; }
 
   /* ── EMPTY / SAVING ── */
   .empty-state { text-align: center; padding: 2.5rem 1rem; color: var(--muted); font-size: 0.85rem; border: 1px dashed var(--border-light); letter-spacing: 0.08em; line-height: 1.8; }
   .saving-indicator { font-size: 0.7rem; color: var(--muted); text-align: center; margin-top: 0.5rem; min-height: 1rem; letter-spacing: 0.08em; }
 
   /* ── TOAST ── */
-  .toast {
-    position: fixed; bottom: 2rem; left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: var(--surface); border: 1px solid var(--red); border-left: 3px solid var(--red);
-    color: var(--text); padding: 0.75rem 1.5rem; font-size: 0.85rem; z-index: 999;
-    letter-spacing: 0.05em; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
+  .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--surface); border: 1px solid var(--red); border-left: 3px solid var(--red); color: var(--text); padding: 0.75rem 1.5rem; font-size: 0.85rem; z-index: 999; letter-spacing: 0.05em; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
   .toast.show { transform: translateX(-50%) translateY(0); }
   .toast.error { color: #ff8080; }
 
@@ -178,106 +151,147 @@
   <div class="admin-badge">⚙ Leerkracht</div>
 </header>
 
-<div class="admin-layout">
+<div class="tabs">
+  <button class="tab-btn active" id="tab-btn-opdrachten" onclick="switchTab('opdrachten')">Opdrachten</button>
+  <button class="tab-btn" id="tab-btn-groepen" onclick="switchTab('groepen')">Groepen</button>
+</div>
 
-  <!-- Form -->
-  <div class="panel">
-    <div class="panel-title" id="form-panel-title">
-      Nieuwe opdracht <span class="panel-title-sub">INVOER</span>
-    </div>
+<script>
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-btn-' + tab).classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    if (tab === 'groepen' && window._renderGroupsTab) window._renderGroupsTab();
+  }
+</script>
 
-    <div class="form-group">
-      <label>Naam opdracht</label>
-      <input type="text" id="inp-name" placeholder="bv. Via Caetani">
-    </div>
+<!-- TAB: OPDRACHTEN -->
+<div class="tab-content active" id="tab-opdrachten">
+  <div class="admin-layout">
 
-    <div class="form-group">
-      <label>Beschrijving / instructie voor leerling</label>
-      <textarea id="inp-desc" placeholder="bv. Zoek de plek waar het lichaam van Moro werd gevonden..."></textarea>
-    </div>
+    <!-- Form -->
+    <div class="panel">
+      <div class="panel-title" id="form-panel-title">
+        Nieuwe opdracht <span class="panel-title-sub">INVOER</span>
+      </div>
 
-    <div class="form-group">
-      <label>Symbool</label>
-      <div class="symbol-row">
-        <div class="symbol-preview" id="symbol-preview">★</div>
-        <div class="symbol-input-wrap">
-          <input type="text" id="inp-symbol" placeholder="★" maxlength="2" oninput="updateSymbolPreview()">
-          <div class="symbol-hint">Typ of plak een symbool (één teken)</div>
-          <div class="symbol-presets">
-            <div class="symbol-preset" onclick="setSymbol('★')">★</div>
-            <div class="symbol-preset" onclick="setSymbol('✦')">✦</div>
-            <div class="symbol-preset" onclick="setSymbol('⬟')">⬟</div>
-            <div class="symbol-preset" onclick="setSymbol('◆')">◆</div>
-            <div class="symbol-preset" onclick="setSymbol('⊕')">⊕</div>
-            <div class="symbol-preset" onclick="setSymbol('⚑')">⚑</div>
-            <div class="symbol-preset" onclick="setSymbol('✉')">✉</div>
-            <div class="symbol-preset" onclick="setSymbol('🔑')">🔑</div>
-            <div class="symbol-preset" onclick="setSymbol('📷')">📷</div>
-            <div class="symbol-preset" onclick="setSymbol('💣')">💣</div>
-            <div class="symbol-preset" onclick="setSymbol('🗂')">🗂</div>
-            <div class="symbol-preset" onclick="setSymbol('🩸')">🩸</div>
+      <div class="form-group">
+        <label>Naam opdracht</label>
+        <input type="text" id="inp-name" placeholder="bv. Via Caetani">
+      </div>
+
+      <div class="form-group">
+        <label>Beschrijving (Markdown-bestand, optioneel)</label>
+        <input type="text" id="inp-desc-md" placeholder="bv. beschrijvingen/via-caetani.md">
+        <div class="geo-hint">Pad naar .md bestand op GitHub. Overschrijft de tekst hierboven als ingevuld.</div>
+      </div>
+
+      <div class="form-group">
+        <label>Beschrijving / instructie voor leerling</label>
+        <textarea id="inp-desc" placeholder="bv. Zoek de plek waar het lichaam van Moro werd gevonden..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Symbool</label>
+        <div class="symbol-row">
+          <div class="symbol-preview" id="symbol-preview">★</div>
+          <div class="symbol-input-wrap">
+            <input type="text" id="inp-symbol" placeholder="★" maxlength="2" oninput="updateSymbolPreview()">
+            <div class="symbol-hint">Typ of plak een symbool (één teken)</div>
+            <div class="symbol-presets">
+              <div class="symbol-preset" onclick="setSymbol('★')">★</div>
+              <div class="symbol-preset" onclick="setSymbol('✦')">✦</div>
+              <div class="symbol-preset" onclick="setSymbol('⬟')">⬟</div>
+              <div class="symbol-preset" onclick="setSymbol('◆')">◆</div>
+              <div class="symbol-preset" onclick="setSymbol('⊕')">⊕</div>
+              <div class="symbol-preset" onclick="setSymbol('⚑')">⚑</div>
+              <div class="symbol-preset" onclick="setSymbol('✉')">✉</div>
+              <div class="symbol-preset" onclick="setSymbol('🔑')">🔑</div>
+              <div class="symbol-preset" onclick="setSymbol('📷')">📷</div>
+              <div class="symbol-preset" onclick="setSymbol('💣')">💣</div>
+              <div class="symbol-preset" onclick="setSymbol('🗂')">🗂</div>
+              <div class="symbol-preset" onclick="setSymbol('🩸')">🩸</div>
+            </div>
           </div>
         </div>
       </div>
+
+      <div class="form-group">
+        <label>Weergavemodus</label>
+        <div class="mode-toggle">
+          <div class="mode-btn active" id="mode-compass" onclick="selectMode('compass')">🧭 Pijl + afstand</div>
+          <div class="mode-btn" id="mode-map" onclick="selectMode('map')">🗺 Adres + kaartje</div>
+        </div>
+      </div>
+
+      <div class="form-group" id="group-address" style="display:none;">
+        <label>Adres (voor leerling zichtbaar)</label>
+        <input type="text" id="inp-address" placeholder="bv. Via Caetani, Roma">
+      </div>
+
+      <div class="form-group">
+        <label>GPS Coördinaten</label>
+        <div class="coords-row">
+          <input type="number" id="inp-lat" placeholder="Breedtegraad" step="0.000001">
+          <input type="number" id="inp-lng" placeholder="Lengtegraad" step="0.000001">
+        </div>
+        <button class="geo-btn" onclick="useCurrentLocation()">📍 Gebruik huidige locatie</button>
+        <div class="geo-hint" id="geo-hint"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Aankomstradius (meter)</label>
+        <input type="number" id="inp-radius" value="25" min="5" max="500">
+      </div>
+
+      <div class="form-group">
+        <label>Audiofragment (optioneel)</label>
+        <input type="text" id="inp-audio" placeholder="bv. audio/locatie1.mp3">
+        <div class="geo-hint">Relatief pad naar MP3 in je GitHub repository. Wordt afgespeeld bij aankomst.</div>
+      </div>
+
+      <div class="form-group">
+        <label>Zichtbaar na het bezoeken van...</label>
+        <div class="unlock-hint">Laat leeg = altijd zichtbaar. Vink aan = pas zichtbaar na een van de gekozen locaties.</div>
+        <div class="unlock-list" id="unlock-list">
+          <div class="geo-hint" style="padding:0.4rem 0;">Sla eerst andere opdrachten op om hier uit te kiezen.</div>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="saveAssignment()">Opdracht opslaan</button>
+      <button class="btn-secondary" onclick="cancelEdit()">Annuleren</button>
+      <div class="saving-indicator" id="saving-indicator"></div>
     </div>
 
-    <div class="form-group">
-      <label>Weergavemodus</label>
-      <div class="mode-toggle">
-        <div class="mode-btn active" id="mode-compass" onclick="selectMode('compass')">🧭 Pijl + afstand</div>
-        <div class="mode-btn" id="mode-map" onclick="selectMode('map')">🗺 Adres + kaartje</div>
+    <!-- List -->
+    <div class="panel">
+      <div class="panel-title">
+        Opdrachten
+        <span class="panel-title-sub"><span id="count">0</span> DOSSIERS · SLEEP OM TE HERORDENEN</span>
+      </div>
+      <div class="assignment-list" id="assignment-list">
+        <div class="empty-state">Geen opdrachten.<br>Voeg er een toe.</div>
       </div>
     </div>
 
-    <div class="form-group" id="group-address" style="display:none;">
-      <label>Adres (voor leerling zichtbaar)</label>
-      <input type="text" id="inp-address" placeholder="bv. Via Caetani, Roma">
-    </div>
-
-    <div class="form-group">
-      <label>GPS Coördinaten</label>
-      <div class="coords-row">
-        <input type="number" id="inp-lat" placeholder="Breedtegraad" step="0.000001">
-        <input type="number" id="inp-lng" placeholder="Lengtegraad" step="0.000001">
-      </div>
-      <button class="geo-btn" onclick="useCurrentLocation()">📍 Gebruik huidige locatie</button>
-      <div class="geo-hint" id="geo-hint"></div>
-    </div>
-
-    <div class="form-group">
-      <label>Audiofragment (optioneel)</label>
-      <input type="text" id="inp-audio" placeholder="bv. audio/locatie1.mp3">
-      <div class="geo-hint">Relatief pad naar MP3 in je GitHub repository. Wordt afgespeeld bij aankomst.</div>
-    </div>
-
-    <div class="form-group">
-      <label>Aankomstradius (meter)</label>
-      <input type="number" id="inp-radius" value="25" min="5" max="500">
-    </div>
-
-    <button class="btn-primary" onclick="saveAssignment()">Opdracht opslaan</button>
-    <button class="btn-secondary" onclick="cancelEdit()">Annuleren</button>
-    <div class="saving-indicator" id="saving-indicator"></div>
   </div>
+</div>
 
-  <!-- List -->
-  <div class="panel">
-    <div class="panel-title">
-      Opdrachten
-      <span class="panel-title-sub"><span id="count">0</span> DOSSIERS · SLEEP OM TE HERORDENEN</span>
-    </div>
-    <div class="assignment-list" id="assignment-list">
-      <div class="empty-state">Geen opdrachten.<br>Voeg er een toe.</div>
+<!-- TAB: GROEPEN -->
+<div class="tab-content" id="tab-groepen">
+  <div class="groups-layout">
+    <div class="groups-grid" id="groups-grid">
+      <div class="empty-state">Groepen laden...</div>
     </div>
   </div>
-
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyC_2gs99Sao2zdxa_JsRd9fNUFg-MVcXgw",
@@ -285,16 +299,17 @@
     projectId: "rome-maffia",
     storageBucket: "rome-maffia.firebasestorage.app",
     messagingSenderId: "68269167339",
-    appId: "1:68269167339:web:43f9f177f38af954fce4ae",
-    measurementId: "G-5J1MY47CG1"
+    appId: "1:68269167339:web:43f9f177f38af954fce4ae"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
+  const NUM_GROUPS = 10;
   let assignments = [], selectedMode = 'compass', editingId = null, dragSrcIndex = null;
+  let selectedUnlocks = new Set();
 
-  // Symbol helpers — exposed to window for onclick
+  // ── SYMBOL ──
   window.updateSymbolPreview = function() {
     const v = document.getElementById('inp-symbol').value || '★';
     document.getElementById('symbol-preview').textContent = v;
@@ -330,13 +345,38 @@
     }, () => { document.getElementById('geo-hint').textContent = '✗ Geen toegang'; });
   };
 
-  const q = query(collection(db, "assignments"), orderBy("order", "asc"));
+  // ── UNLOCK LIST ──
+  function renderUnlockList() {
+    const list = document.getElementById('unlock-list');
+    const others = assignments.filter(a => a.id !== editingId);
+    if (!others.length) {
+      list.innerHTML = `<div class="geo-hint" style="padding:0.4rem 0;">Nog geen andere opdrachten beschikbaar.</div>`;
+      return;
+    }
+    list.innerHTML = others.map(a => `
+      <div class="unlock-item ${selectedUnlocks.has(a.id) ? 'selected' : ''}" onclick="toggleUnlock('${a.id}')">
+        <div class="unlock-item-symbol">${a.symbol || '★'}</div>
+        <div class="unlock-item-name">${a.name}</div>
+        <div class="unlock-check">${selectedUnlocks.has(a.id) ? '✓' : ''}</div>
+      </div>`).join('');
+  }
+
+  window.toggleUnlock = function(id) {
+    if (selectedUnlocks.has(id)) selectedUnlocks.delete(id);
+    else selectedUnlocks.add(id);
+    renderUnlockList();
+  };
+
+  // ── LIVE SYNC ──
+  const q = query(collection(db, 'assignments'), orderBy('order', 'asc'));
   onSnapshot(q, snapshot => {
     assignments = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
     document.getElementById('count').textContent = assignments.length;
     renderAdminList();
+    renderUnlockList();
   });
 
+  // ── SAVE ──
   window.saveAssignment = async function() {
     const name = document.getElementById('inp-name').value.trim();
     const desc = document.getElementById('inp-desc').value.trim();
@@ -345,21 +385,22 @@
     const lng = parseFloat(document.getElementById('inp-lng').value);
     const radius = parseInt(document.getElementById('inp-radius').value) || 25;
     const address = document.getElementById('inp-address').value.trim();
-
     const audio = document.getElementById('inp-audio').value.trim();
+    const descMd = document.getElementById('inp-desc-md').value.trim();
+    const unlockedBy = [...selectedUnlocks];
 
     if (!name) { toast('Voer een naam in', true); return; }
     if (isNaN(lat) || isNaN(lng)) { toast('Voer geldige coördinaten in', true); return; }
 
     setSaving('Opslaan...');
     try {
-      const data = { name, desc, symbol, lat, lng, radius, mode: selectedMode, address, audio };
+      const data = { name, desc, symbol, lat, lng, radius, mode: selectedMode, address, audio, unlockedBy, descMd };
       if (editingId) {
-        await updateDoc(doc(db, "assignments", editingId), data);
+        await updateDoc(doc(db, 'assignments', editingId), data);
         toast('Opdracht bijgewerkt');
       } else {
         data.order = assignments.length;
-        await addDoc(collection(db, "assignments"), data);
+        await addDoc(collection(db, 'assignments'), data);
         toast('Opdracht toegevoegd');
       }
       setSaving(''); resetForm();
@@ -377,8 +418,12 @@
     document.getElementById('inp-lat').value = a.lat;
     document.getElementById('inp-lng').value = a.lng;
     document.getElementById('inp-radius').value = a.radius || 25;
+    document.getElementById('inp-address').value = a.address || '';
     document.getElementById('inp-audio').value = a.audio || '';
+    document.getElementById('inp-desc-md').value = a.descMd || '';
+    selectedUnlocks = new Set(a.unlockedBy || []);
     selectMode(a.mode || 'compass');
+    renderUnlockList();
     document.getElementById('form-panel-title').innerHTML = 'Opdracht bewerken <span class="panel-title-sub">BEWERKEN</span>';
     document.querySelectorAll('.assignment-card').forEach(c => c.classList.remove('editing'));
     document.getElementById('card-' + id)?.classList.add('editing');
@@ -388,7 +433,7 @@
   window.deleteAssignment = async function(id) {
     if (!confirm('Opdracht verwijderen?')) return;
     try {
-      await deleteDoc(doc(db, "assignments", id));
+      await deleteDoc(doc(db, 'assignments', id));
       if (editingId === id) resetForm();
       toast('Opdracht verwijderd');
     } catch (e) { toast('Fout: ' + e.message, true); }
@@ -397,44 +442,54 @@
   window.cancelEdit = resetForm;
   function resetForm() {
     editingId = null;
-    ['inp-name','inp-desc','inp-lat','inp-lng','inp-address','inp-audio'].forEach(id => document.getElementById(id).value = '');
+    selectedUnlocks = new Set();
+    ['inp-name','inp-desc','inp-lat','inp-lng','inp-address','inp-audio','inp-desc-md'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('inp-symbol').value = '★';
     document.getElementById('symbol-preview').textContent = '★';
     document.getElementById('inp-radius').value = '25';
     document.getElementById('form-panel-title').innerHTML = 'Nieuwe opdracht <span class="panel-title-sub">INVOER</span>';
     selectMode('compass');
     document.querySelectorAll('.assignment-card').forEach(c => c.classList.remove('editing'));
+    renderUnlockList();
   }
 
+  // ── RENDER LIST ──
   function renderAdminList() {
     const list = document.getElementById('assignment-list');
     if (!assignments.length) {
       list.innerHTML = `<div class="empty-state">Geen opdrachten.<br>Voeg er een toe.</div>`;
       return;
     }
-    list.innerHTML = assignments.map((a, i) => `
-      <div class="assignment-card" id="card-${a.id}"
-        draggable="true"
-        ondragstart="dragStart(event,${i})"
-        ondragover="dragOver(event,${i})"
-        ondragleave="dragLeave(event)"
-        ondrop="dragDrop(event,${i})"
-        ondragend="dragEnd(event)"
-        onclick="editAssignment('${a.id}')">
-        <span class="drag-handle">⠿</span>
-        <div class="card-symbol">${a.symbol || String(i+1).padStart(2,'0')}</div>
-        <div class="card-info">
-          <div class="card-name">${a.name}</div>
-          <div class="card-meta">${a.lat?.toFixed(4)}, ${a.lng?.toFixed(4)} · r=${a.radius}m</div>
-        </div>
-        <span class="mode-badge ${a.mode}">${a.mode === 'compass' ? 'pijl' : 'kaart'}</span>
-        <div class="card-actions" onclick="event.stopPropagation()">
-          <button class="btn-danger" onclick="deleteAssignment('${a.id}')">✕</button>
-        </div>
-      </div>
-    `).join('');
+    list.innerHTML = assignments.map((a, i) => {
+      const unlockNames = (a.unlockedBy || []).map(id => {
+        const found = assignments.find(x => x.id === id);
+        return found ? found.name : '?';
+      });
+      return `
+        <div class="assignment-card" id="card-${a.id}"
+          draggable="true"
+          ondragstart="dragStart(event,${i})"
+          ondragover="dragOver(event,${i})"
+          ondragleave="dragLeave(event)"
+          ondrop="dragDrop(event,${i})"
+          ondragend="dragEnd(event)"
+          onclick="editAssignment('${a.id}')">
+          <span class="drag-handle">⠿</span>
+          <div class="card-symbol">${a.symbol || String(i+1).padStart(2,'0')}</div>
+          <div class="card-info">
+            <div class="card-name">${a.name}</div>
+            <div class="card-meta">${a.lat?.toFixed(4)}, ${a.lng?.toFixed(4)} · r=${a.radius}m</div>
+            ${unlockNames.length ? `<div class="card-unlock-info">✦ Na: ${unlockNames.join(', ')}</div>` : ''}
+          </div>
+          <span class="mode-badge ${a.mode}">${a.mode === 'compass' ? 'pijl' : 'kaart'}</span>
+          <div class="card-actions" onclick="event.stopPropagation()">
+            <button class="btn-danger" onclick="deleteAssignment('${a.id}')">✕</button>
+          </div>
+        </div>`;
+    }).join('');
   }
 
+  // ── DRAG & DROP ──
   window.dragStart = function(e, i) { dragSrcIndex = i; setTimeout(() => e.target.closest('.assignment-card').classList.add('dragging'), 0); };
   window.dragOver = function(e, i) {
     e.preventDefault();
@@ -451,14 +506,69 @@
     setSaving('Volgorde opslaan...');
     try {
       const batch = writeBatch(db);
-      reordered.forEach((a, idx) => batch.update(doc(db, "assignments", a.id), { order: idx }));
-      await batch.commit();
-      setSaving('');
+      reordered.forEach((a, idx) => batch.update(doc(db, 'assignments', a.id), { order: idx }));
+      await batch.commit(); setSaving('');
     } catch (e) { setSaving(''); toast('Fout bij herordenen', true); }
   };
   window.dragEnd = function(e) {
     document.querySelectorAll('.assignment-card').forEach(c => { c.classList.remove('dragging'); c.classList.remove('drag-over'); });
     dragSrcIndex = null;
+  };
+
+  // ── GROUPS TAB ──
+  async function renderGroupsTab() {
+    const grid = document.getElementById('groups-grid');
+    grid.innerHTML = '<div class="empty-state">Groepsdata ophalen...</div>';
+
+    const total = assignments.length;
+    const groupData = [];
+
+    for (let i = 1; i <= NUM_GROUPS; i++) {
+      const id = `groep-${i}`;
+      const snap = await getDoc(doc(db, 'groups', id));
+      if (snap.exists()) {
+        groupData.push({ id, label: `Groep ${i}`, ...snap.data() });
+      } else {
+        groupData.push({ id, label: `Groep ${i}`, completed: [], lastSeen: null });
+      }
+    }
+
+    grid.innerHTML = groupData.map(g => {
+      const done = g.completed || [];
+      const pct = total > 0 ? Math.round((done.length / total) * 100) : 0;
+      const chips = done.map(id => {
+        const a = assignments.find(x => x.id === id);
+        return a ? `<span class="group-visited-chip">${a.symbol || '★'} ${a.name}</span>` : '';
+      }).join('');
+      const lastSeen = g.lastSeen ? new Date(g.lastSeen).toLocaleString('nl-BE', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : null;
+
+      return `
+        <div class="group-card">
+          <div class="group-card-header">
+            <div class="group-card-name">${g.label}</div>
+            <div class="group-card-count">${done.length}/${total}</div>
+          </div>
+          <div class="group-progress-bar"><div class="group-progress-fill" style="width:${pct}%"></div></div>
+          ${lastSeen ? `<div class="group-lastseen">Laatste activiteit: ${lastSeen}</div>` : ''}
+          <div class="group-visited">${chips || '<span class="group-empty">Nog geen locaties bezocht</span>'}</div>
+          <div class="group-actions">
+            <button class="btn-small green" onclick="refreshGroups()">↺ Vernieuwen</button>
+            <button class="btn-small" onclick="resetGroup('${g.id}', '${g.label}')">Reset voortgang</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  window._renderGroupsTab = renderGroupsTab;
+  window.refreshGroups = function() { renderGroupsTab(); };
+
+  window.resetGroup = async function(groupId, label) {
+    if (!confirm(`Voortgang van ${label} wissen?`)) return;
+    try {
+      await setDoc(doc(db, 'groups', groupId), { completed: [], lastSeen: null });
+      toast(`${label} gereset`);
+      renderGroupsTab();
+    } catch (e) { toast('Fout: ' + e.message, true); }
   };
 </script>
 </body>
