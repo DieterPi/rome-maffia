@@ -12,51 +12,65 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root {
-    --bg: #1a1208;
-    --paper: #f0e6c8;
-    --paper-dark: #d9cc9a;
-    --surface: #231a0a;
-    --surface2: #2e2210;
-    --border: #6b4c1e;
-    --red: #c0152a;
-    --red-dim: #8a0f1e;
-    --text: #f0e6c8;
-    --muted: #a08050;
-    --ink: #1a1208;
+    --bg: #1a1208; --paper: #f0e6c8; --paper-dark: #d9cc9a;
+    --surface: #231a0a; --surface2: #2e2210; --border: #6b4c1e;
+    --red: #c0152a; --red-dim: #8a0f1e; --text: #f0e6c8; --muted: #a08050; --ink: #1a1208;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   body {
     font-family: 'Courier Prime', monospace;
     background: var(--bg); color: var(--text); min-height: 100vh;
-    background-image:
-      repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(255,255,255,0.015) 28px, rgba(255,255,255,0.015) 29px);
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(255,255,255,0.015) 28px, rgba(255,255,255,0.015) 29px);
   }
 
   /* ── HEADER ── */
   header { background: var(--red); position: relative; overflow: hidden; }
   .header-rule { height: 4px; background: var(--bg); }
   .header-rule-thin { height: 1px; background: rgba(0,0,0,0.3); margin-top: 2px; }
-  .header-inner {
-    display: flex; flex-direction: column; align-items: center;
-    padding: 1.2rem 1rem 1rem; position: relative; z-index: 1;
-  }
+  .header-inner { display: flex; flex-direction: column; align-items: center; padding: 1.2rem 1rem 1rem; position: relative; z-index: 1; }
   .header-eyebrow { font-size: 0.75rem; letter-spacing: 0.25em; color: rgba(240,230,200,0.6); text-transform: uppercase; margin-bottom: 0.3rem; }
   .header-title { font-family: 'Special Elite', cursive; font-size: 2rem; color: var(--paper); text-shadow: 2px 2px 0 rgba(0,0,0,0.4); letter-spacing: 0.03em; }
   .header-sub { font-size: 0.75rem; color: rgba(240,230,200,0.55); letter-spacing: 0.2em; margin-top: 0.4rem; text-transform: uppercase; }
+  .header-group { font-size: 0.7rem; color: rgba(240,230,200,0.8); letter-spacing: 0.15em; margin-top: 0.3rem; text-transform: uppercase; }
   header::after { content: '★'; position: absolute; right: -10px; top: -10px; font-size: 120px; color: rgba(0,0,0,0.12); line-height: 1; pointer-events: none; }
+
+  /* ── GROUP PICKER ── */
+  .group-picker-overlay {
+    position: fixed; inset: 0; background: rgba(10,7,3,0.95);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 500; padding: 2rem;
+  }
+  .group-picker-box {
+    background: var(--surface); border: 2px solid var(--red);
+    padding: 2rem; max-width: 420px; width: 100%;
+    box-shadow: 6px 6px 0 var(--red-dim); position: relative;
+  }
+  .group-picker-box::before { content: 'IDENTIFICAZIONE'; position: absolute; top: -0.7rem; left: 1rem; background: var(--red); color: var(--paper); font-size: 0.6rem; padding: 0.15rem 0.6rem; letter-spacing: 0.2em; }
+  .group-picker-title { font-family: 'Special Elite', cursive; font-size: 1.5rem; color: var(--text); margin-bottom: 0.5rem; }
+  .group-picker-sub { font-size: 0.8rem; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.6; letter-spacing: 0.04em; }
+  .group-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 1.5rem; }
+  .group-btn {
+    padding: 0.85rem; border: 1px solid var(--border); background: var(--surface2);
+    color: var(--text); font-family: 'Special Elite', cursive; font-size: 1rem;
+    cursor: pointer; transition: all 0.15s; letter-spacing: 0.04em;
+  }
+  .group-btn:hover { border-color: var(--red); background: rgba(192,21,42,0.1); }
+  .group-btn.selected { background: var(--red); border-color: var(--red); color: var(--paper); }
+  .group-confirm {
+    width: 100%; padding: 0.9rem; background: var(--red); color: var(--paper); border: none;
+    font-family: 'Special Elite', cursive; font-size: 1.05rem; cursor: pointer;
+    box-shadow: 3px 3px 0 var(--red-dim); transition: all 0.15s; letter-spacing: 0.05em;
+    opacity: 0.4; pointer-events: none;
+  }
+  .group-confirm.active { opacity: 1; pointer-events: auto; }
+  .group-confirm.active:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--red-dim); }
 
   /* ── LAYOUT ── */
   .student-layout { max-width: 600px; margin: 0 auto; padding: 1.5rem; }
 
   /* ── LIST HEADER ── */
   .student-header { text-align: center; margin-bottom: 1.5rem; margin-top: 1.2rem; }
-  .classified-stamp {
-    display: inline-block; border: 3px solid var(--red); color: var(--red);
-    font-family: 'Special Elite', cursive; font-size: 1.1rem; letter-spacing: 0.15em;
-    padding: 0.2rem 0.8rem; transform: rotate(-2deg); opacity: 0.85; margin-bottom: 0.8rem;
-  }
+  .classified-stamp { display: inline-block; border: 3px solid var(--red); color: var(--red); font-family: 'Special Elite', cursive; font-size: 1.1rem; letter-spacing: 0.15em; padding: 0.2rem 0.8rem; transform: rotate(-2deg); opacity: 0.85; margin-bottom: 0.8rem; }
   .student-header h2 { font-family: 'Special Elite', cursive; font-size: 1.7rem; color: var(--paper); letter-spacing: 0.04em; }
   .student-header p { color: var(--muted); font-size: 0.85rem; letter-spacing: 0.1em; margin-top: 0.4rem; text-transform: uppercase; }
 
@@ -70,17 +84,29 @@
     box-shadow: 2px 2px 8px rgba(0,0,0,0.4);
   }
   .student-card:hover { box-shadow: 3px 3px 16px rgba(0,0,0,0.6); transform: translateX(3px); }
-
+  .student-card.completed {
+    border-left-color: var(--muted); opacity: 0.6;
+    box-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+  }
+  .student-card.completed:hover { transform: none; }
+  .student-card.completed .student-card-name { text-decoration: line-through; color: #7a6040; }
   .student-symbol {
     width: 48px; height: 48px; background: var(--red);
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.5rem; color: var(--paper); flex-shrink: 0;
-    line-height: 1;
+    font-size: 1.5rem; color: var(--paper); flex-shrink: 0; line-height: 1;
   }
+  .student-card.completed .student-symbol { background: var(--muted); }
   .student-card-info { flex: 1; }
   .student-card-name { font-family: 'Special Elite', cursive; font-size: 1.15rem; color: var(--ink); }
   .student-card-desc { font-size: 0.85rem; color: #5a4020; margin-top: 0.3rem; line-height: 1.4; }
   .card-arrow { font-size: 1.2rem; color: var(--red); flex-shrink: 0; }
+  .student-card.completed .card-arrow { color: var(--muted); }
+  .completed-badge { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.3rem; }
+
+  /* ── SECTION DIVIDER ── */
+  .section-divider { display: flex; align-items: center; gap: 0.8rem; margin: 1.2rem 0 0.8rem; }
+  .section-divider span { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; white-space: nowrap; }
+  .section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
   /* ── STATES ── */
   .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); font-size: 0.9rem; border: 1px dashed var(--border); letter-spacing: 0.05em; }
@@ -92,19 +118,14 @@
   .task-view.active { display: block; }
   .back-btn {
     display: inline-flex; align-items: center; gap: 0.5rem;
-    background: var(--red); color: var(--paper);
-    border: none; padding: 0.6rem 1.2rem; font-size: 0.85rem; cursor: pointer;
+    background: var(--red); color: var(--paper); border: none;
+    padding: 0.6rem 1.2rem; font-size: 0.85rem; cursor: pointer;
     margin-bottom: 1.5rem; transition: all 0.15s; letter-spacing: 0.1em; text-transform: uppercase;
-    font-family: 'Special Elite', cursive;
-    box-shadow: 3px 3px 0 var(--red-dim);
+    font-family: 'Special Elite', cursive; box-shadow: 3px 3px 0 var(--red-dim);
   }
   .back-btn:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--red-dim); }
 
-  .dossier-card {
-    background: var(--paper); border: 1px solid var(--paper-dark);
-    box-shadow: 3px 3px 12px rgba(0,0,0,0.5); padding: 1.5rem;
-    margin-bottom: 1.5rem; position: relative;
-  }
+  .dossier-card { background: var(--paper); border: 1px solid var(--paper-dark); box-shadow: 3px 3px 12px rgba(0,0,0,0.5); padding: 1.5rem; margin-bottom: 1.5rem; position: relative; }
   .dossier-card::before { content: 'DOSSIER RISERVATO'; position: absolute; top: 0.6rem; right: 0.8rem; font-size: 0.65rem; color: var(--red); opacity: 0.5; letter-spacing: 0.15em; }
   .dossier-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.8rem; }
   .dossier-symbol { font-size: 2.2rem; line-height: 1; color: var(--red); flex-shrink: 0; }
@@ -114,10 +135,7 @@
 
   /* ── DISTANCE ── */
   .compass-container { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
-  .distance-display {
-    background: var(--paper); border: 1px solid var(--paper-dark);
-    box-shadow: 3px 3px 12px rgba(0,0,0,0.5); padding: 1.4rem 2rem; width: 100%; text-align: center; position: relative;
-  }
+  .distance-display { background: var(--paper); border: 1px solid var(--paper-dark); box-shadow: 3px 3px 12px rgba(0,0,0,0.5); padding: 1.4rem 2rem; width: 100%; text-align: center; position: relative; }
   .distance-display::before { content: ''; position: absolute; top: 6px; left: 6px; right: 6px; bottom: 6px; border: 1px solid var(--paper-dark); pointer-events: none; }
   .distance-label { font-size: 0.72rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 0.3rem; }
   .distance-value { font-family: 'Special Elite', cursive; font-size: 4.5rem; color: var(--red); line-height: 1; }
@@ -131,86 +149,46 @@
 
   /* ── ARROW ── */
   .arrow-wrapper { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
-  .arrow-ring {
-    width: 240px; height: 240px; border-radius: 50%;
-    background: var(--surface); border: 3px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 0 0 6px var(--bg), 0 0 0 7px var(--border), 4px 4px 20px rgba(0,0,0,0.6);
-    position: relative;
-  }
+  .arrow-ring { width: 240px; height: 240px; border-radius: 50%; background: var(--surface); border: 3px solid var(--border); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 6px var(--bg), 0 0 0 7px var(--border), 4px 4px 20px rgba(0,0,0,0.6); position: relative; }
   .arrow-ring::before { content: ''; position: absolute; inset: 12px; border-radius: 50%; border: 1px dashed rgba(107,76,30,0.4); }
   .arrow-rotate { transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; align-items: center; justify-content: center; }
-  .nav-arrow {
-    width: 0; height: 0;
-    border-left: 26px solid transparent; border-right: 26px solid transparent;
-    border-bottom: 104px solid var(--red);
-    filter: drop-shadow(0 0 10px rgba(192,21,42,0.5)); position: relative;
-  }
-  .nav-arrow::after {
-    content: ''; position: absolute; bottom: -104px; left: -17px;
-    width: 0; height: 0;
-    border-left: 17px solid transparent; border-right: 17px solid transparent;
-    border-top: 52px solid rgba(192,21,42,0.2);
-  }
+  .nav-arrow { width: 0; height: 0; border-left: 26px solid transparent; border-right: 26px solid transparent; border-bottom: 104px solid var(--red); filter: drop-shadow(0 0 10px rgba(192,21,42,0.5)); position: relative; }
+  .nav-arrow::after { content: ''; position: absolute; bottom: -104px; left: -17px; width: 0; height: 0; border-left: 17px solid transparent; border-right: 17px solid transparent; border-top: 52px solid rgba(192,21,42,0.2); }
   .arrow-hint { font-size: 0.8rem; color: var(--muted); text-align: center; max-width: 240px; line-height: 1.6; letter-spacing: 0.06em; text-transform: uppercase; }
 
-  /* ── MAP (Leaflet) ── */
+  /* ── MAP ── */
   .map-container { background: var(--paper); border: 1px solid var(--paper-dark); box-shadow: 3px 3px 12px rgba(0,0,0,0.5); overflow: hidden; }
   .map-address-bar { padding: 1rem 1.2rem; display: flex; align-items: center; gap: 0.9rem; border-bottom: 2px solid var(--red); background: var(--paper); }
   .map-symbol-badge { font-size: 1.8rem; line-height: 1; color: var(--red); flex-shrink: 0; }
   .map-address { font-family: 'Special Elite', cursive; font-size: 1.05rem; color: var(--ink); }
   .map-coords { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; letter-spacing: 0.05em; }
   #leaflet-map { width: 100%; height: 320px; }
-
-  /* Sepia filter overlay on Leaflet tiles */
   .leaflet-tile { filter: sepia(60%) contrast(85%) brightness(105%) saturate(70%); }
   .leaflet-container { background: #d4c99a; }
-
-  /* Custom Leaflet marker styling */
-  .custom-target-icon { display: flex; align-items: center; justify-content: center; }
-  .custom-player-icon { display: flex; align-items: center; justify-content: center; }
 
   /* ── PERMISSION ── */
   .permission-box { background: var(--paper); border: 1px solid var(--paper-dark); box-shadow: 3px 3px 12px rgba(0,0,0,0.5); padding: 2rem; text-align: center; }
   .permission-icon { font-size: 2.5rem; margin-bottom: 0.8rem; }
   .permission-box h3 { font-family: 'Special Elite', cursive; color: var(--ink); margin-bottom: 0.5rem; font-size: 1.2rem; }
   .permission-box p { color: #5a4020; font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.6; }
-  .btn-start {
-    background: var(--red); color: var(--paper); border: none; padding: 0.9rem 2rem;
-    font-family: 'Special Elite', cursive; font-size: 1.05rem; cursor: pointer;
-    box-shadow: 3px 3px 0 var(--red-dim); letter-spacing: 0.05em; transition: all 0.15s;
-  }
+  .btn-start { background: var(--red); color: var(--paper); border: none; padding: 0.9rem 2rem; font-family: 'Special Elite', cursive; font-size: 1.05rem; cursor: pointer; box-shadow: 3px 3px 0 var(--red-dim); letter-spacing: 0.05em; transition: all 0.15s; }
   .btn-start:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--red-dim); }
 
-  /* ── AUDIO PLAYER ── */
-  .audio-player {
-    margin-top: 1.2rem; border-top: 1px solid var(--paper-dark); padding-top: 1rem;
-  }
+  /* ── AUDIO ── */
+  .audio-player { margin-top: 1.2rem; border-top: 1px solid var(--paper-dark); padding-top: 1rem; }
   .audio-label { font-size: 0.65rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 0.5rem; }
-  .audio-player audio {
-    width: 100%; height: 36px;
-    filter: sepia(40%) contrast(90%);
-    accent-color: var(--red);
-  }
+  .audio-player audio { width: 100%; height: 36px; accent-color: var(--red); }
 
   /* ── ARRIVED ── */
-  .arrived-banner {
-    background: var(--paper); border: 3px solid var(--red);
-    padding: 1.8rem 1.5rem 1.5rem; text-align: center; margin-top: 1.5rem;
-    box-shadow: 4px 4px 0 var(--red-dim); position: relative;
-    animation: pulse-red 2s infinite;
-  }
-  .arrived-banner::before {
-    content: '★  OBIETTIVO RAGGIUNTO  ★';
-    position: absolute; top: -0.65rem; left: 50%; transform: translateX(-50%);
-    background: var(--red); color: var(--paper);
-    font-size: 0.65rem; padding: 0.1rem 0.7rem;
-    letter-spacing: 0.15em; white-space: nowrap;
-  }
+  .arrived-banner { background: var(--paper); border: 3px solid var(--red); padding: 1.8rem 1.5rem 1.5rem; text-align: center; margin-top: 1.5rem; box-shadow: 4px 4px 0 var(--red-dim); position: relative; animation: pulse-red 2s infinite; }
+  .arrived-banner::before { content: '★  OBIETTIVO RAGGIUNTO  ★'; position: absolute; top: -0.65rem; left: 50%; transform: translateX(-50%); background: var(--red); color: var(--paper); font-size: 0.65rem; padding: 0.1rem 0.7rem; letter-spacing: 0.15em; white-space: nowrap; }
   @keyframes pulse-red { 0%,100%{box-shadow:4px 4px 0 var(--red-dim)} 50%{box-shadow:4px 4px 0 var(--red-dim),0 0 24px rgba(192,21,42,0.3)} }
   .arrived-icon { font-size: 2.2rem; color: var(--red); }
   .arrived-title { font-family: 'Special Elite', cursive; font-size: 1.3rem; color: var(--red); margin-top: 0.5rem; }
   .arrived-sub { font-size: 0.85rem; color: #5a4020; margin-top: 0.4rem; }
+
+  /* ── UNLOCKED NOTIFICATION ── */
+  .unlocked-notice { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid #6a9a40; padding: 0.8rem 1rem; margin-top: 1rem; font-size: 0.8rem; color: #6a9a40; letter-spacing: 0.05em; }
 </style>
 </head>
 <body>
@@ -222,17 +200,28 @@
     <div class="header-eyebrow">Brigata Investigativa — Roma</div>
     <div class="header-title">Operazione Moro</div>
     <div class="header-sub">Documenti riservati · 1978</div>
+    <div class="header-group" id="header-group"></div>
   </div>
   <div class="header-rule-thin"></div>
   <div class="header-rule"></div>
 </header>
+
+<!-- Group picker overlay -->
+<div class="group-picker-overlay" id="group-picker-overlay">
+  <div class="group-picker-box">
+    <div class="group-picker-title">Selecteer uw groep</div>
+    <div class="group-picker-sub">Kies de groep die u door uw commandant werd toegewezen. Alle leden van dezelfde groep kiezen hetzelfde nummer.</div>
+    <div class="group-grid" id="group-grid"></div>
+    <button class="group-confirm" id="group-confirm" onclick="confirmGroup()">Bevestigen</button>
+  </div>
+</div>
 
 <div class="student-layout">
   <div id="student-picker">
     <div class="student-header">
       <div class="classified-stamp">Riservato</div>
       <h2>Selecteer uw missie</h2>
-      <p>Kies een dossier om te beginnen</p>
+      <p id="progress-label">Dossiers laden...</p>
     </div>
     <div class="assignment-grid" id="student-grid">
       <div class="loading">▋ Dossiers laden...</div>
@@ -254,7 +243,6 @@
 </div>
 
 <script>
-  // Fullscreen on first tap
   document.addEventListener('click', function requestFS() {
     const el = document.documentElement;
     if (el.requestFullscreen) el.requestFullscreen();
@@ -265,7 +253,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, onSnapshot, query, orderBy, setDoc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyC_2gs99Sao2zdxa_JsRd9fNUFg-MVcXgw",
@@ -273,56 +261,143 @@
     projectId: "rome-maffia",
     storageBucket: "rome-maffia.firebasestorage.app",
     messagingSenderId: "68269167339",
-    appId: "1:68269167339:web:43f9f177f38af954fce4ae",
-    measurementId: "G-5J1MY47CG1"
+    appId: "1:68269167339:web:43f9f177f38af954fce4ae"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  let assignments = [], activeAssignment = null;
+  const NUM_GROUPS = 10;
+  let currentGroup = null;
+  let groupProgress = []; // array of completed assignment IDs
+  let assignments = [];
+  let activeAssignment = null;
   let watchId = null, deviceHeading = null, currentLat = null, currentLng = null;
   let gpsLat = null, gpsLng = null, gpsTimestamp = null;
   let gpsSpeed = 0, gpsBearing = null, gpsAccuracy = null, interpFrame = null;
   let leafletMap = null, playerMarker = null;
 
-  const q = query(collection(db, "assignments"), orderBy("order", "asc"));
-  onSnapshot(q, snapshot => {
-    assignments = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderStudentGrid();
-  }, err => {
-    document.getElementById('student-grid').innerHTML = `<div class="empty-state">Dossiers niet beschikbaar.<br>${err.message}</div>`;
-  });
+  // ── GROUP PICKER ──
+  const groupGrid = document.getElementById('group-grid');
+  let selectedGroupTemp = null;
 
+  for (let i = 1; i <= NUM_GROUPS; i++) {
+    const btn = document.createElement('div');
+    btn.className = 'group-btn';
+    btn.textContent = `Groep ${i}`;
+    btn.dataset.group = i;
+    btn.onclick = () => {
+      document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedGroupTemp = `groep-${i}`;
+      document.getElementById('group-confirm').classList.add('active');
+    };
+    groupGrid.appendChild(btn);
+  }
+
+  // Check localStorage for existing group
+  const savedGroup = localStorage.getItem('moro-group');
+  if (savedGroup) {
+    currentGroup = savedGroup;
+    document.getElementById('group-picker-overlay').style.display = 'none';
+    initGroup();
+  }
+
+  window.confirmGroup = function() {
+    if (!selectedGroupTemp) return;
+    currentGroup = selectedGroupTemp;
+    localStorage.setItem('moro-group', currentGroup);
+    document.getElementById('group-picker-overlay').style.display = 'none';
+    initGroup();
+  };
+
+  function groupLabel(g) {
+    return g.replace('groep-', 'Groep ');
+  }
+
+  async function initGroup() {
+    document.getElementById('header-group').textContent = groupLabel(currentGroup);
+
+    // Ensure group doc exists
+    const groupRef = doc(db, 'groups', currentGroup);
+    const snap = await getDoc(groupRef);
+    if (!snap.exists()) {
+      await setDoc(groupRef, { completed: [], lastSeen: new Date().toISOString() });
+    }
+
+    // Listen to group progress in real-time
+    onSnapshot(groupRef, docSnap => {
+      groupProgress = docSnap.data()?.completed || [];
+      renderStudentGrid();
+    });
+
+    // Listen to assignments
+    const q = query(collection(db, 'assignments'), orderBy('order', 'asc'));
+    onSnapshot(q, snapshot => {
+      assignments = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderStudentGrid();
+    });
+  }
+
+  // ── VISIBILITY LOGIC ──
+  function isVisible(a) {
+    // Always visible if no unlockedBy set
+    if (!a.unlockedBy || a.unlockedBy.length === 0) return true;
+    // Visible if at least one of the required assignments is completed
+    return a.unlockedBy.some(reqId => groupProgress.includes(reqId));
+  }
+
+  function isCompleted(a) {
+    return groupProgress.includes(a.id);
+  }
+
+  // ── RENDER GRID ──
   function renderStudentGrid() {
     const grid = document.getElementById('student-grid');
     if (!assignments.length) {
-      grid.innerHTML = `<div class="empty-state">Geen dossiers beschikbaar.<br>Vraag uw commandant.</div>`;
+      grid.innerHTML = `<div class="loading">▋ Dossiers laden...</div>`;
       return;
     }
-    grid.innerHTML = assignments.map((a, i) => `
-      <div class="student-card" onclick="openTask('${a.id}')">
-        <div class="student-symbol">${a.symbol || String(i+1).padStart(2,'0')}</div>
-        <div class="student-card-info">
-          <div class="student-card-name">${a.name}</div>
-          ${a.desc ? `<div class="student-card-desc">${a.desc.substring(0,90)}${a.desc.length>90?'…':''}</div>` : ''}
-        </div>
-        <div class="card-arrow">›</div>
-      </div>
-    `).join('');
+
+    const visible = assignments.filter(isVisible);
+    const active = visible.filter(a => !isCompleted(a));
+    const done = visible.filter(a => isCompleted(a));
+    const total = visible.length;
+    const doneCount = done.length;
+
+    document.getElementById('progress-label').textContent =
+      `${doneCount} van ${total} locaties bezocht`;
+
+    let html = '';
+
+    if (active.length === 0 && done.length === 0) {
+      html = `<div class="empty-state">Geen dossiers beschikbaar.<br>Vraag uw commandant.</div>`;
+    }
+
+    html += active.map(a => cardHTML(a, false)).join('');
+
+    if (done.length > 0) {
+      html += `<div class="section-divider"><span>Afgewerkt</span></div>`;
+      html += done.map(a => cardHTML(a, true)).join('');
+    }
+
+    grid.innerHTML = html;
   }
 
-  window.openTask = function(id) {
-    activeAssignment = assignments.find(a => a.id === id);
-    if (!activeAssignment) return;
-    document.getElementById('student-picker').style.display = 'none';
-    document.getElementById('task-detail').classList.add('active');
-    document.getElementById('task-symbol').textContent = activeAssignment.symbol || '';
-    document.getElementById('task-title').textContent = activeAssignment.name;
-    document.getElementById('task-desc').textContent = activeAssignment.desc || '';
-    if (activeAssignment.mode === 'compass') renderCompassMode();
-    else renderMapMode();
-  };
+  function cardHTML(a, completed) {
+    return `
+      <div class="student-card ${completed ? 'completed' : ''}" onclick="${completed ? '' : `openTask('${a.id}')`}">
+        <div class="student-symbol">${a.symbol || '★'}</div>
+        <div class="student-card-info">
+          <div class="student-card-name">${a.name}</div>
+          ${a.desc && !completed ? `<div class="student-card-desc">${a.desc.substring(0,90)}${a.desc.length>90?'…':''}</div>` : ''}
+          ${completed ? `<div class="completed-badge">✓ Bezocht</div>` : ''}
+        </div>
+        <div class="card-arrow">${completed ? '✓' : '›'}</div>
+      </div>`;
+  }
+
+  // ── OPEN TASK ── (defined further down after renderMd)
 
   window.backToList = function() {
     stopTracking();
@@ -332,7 +407,36 @@
     activeAssignment = null;
   };
 
-  // ── MAP MODE with Leaflet ──
+  // ── MARK COMPLETED ──
+  async function markCompleted(assignmentId) {
+    if (groupProgress.includes(assignmentId)) return;
+    const groupRef = doc(db, 'groups', currentGroup);
+    await updateDoc(groupRef, {
+      completed: arrayUnion(assignmentId),
+      lastSeen: new Date().toISOString()
+    });
+  }
+
+  function arrivedHTML(a) {
+    // Which assignments does this one unlock?
+    const unlocks = assignments.filter(x => (x.unlockedBy || []).includes(a.id));
+    const unlockNotice = unlocks.length > 0
+      ? `<div class="unlocked-notice">✦ Nieuw vrijgegeven: ${unlocks.map(x => x.name).join(', ')}</div>`
+      : '';
+    return `
+      <div class="arrived-banner">
+        <div class="arrived-icon">${a.symbol || '★'}</div>
+        <div class="arrived-title">Obiettivo Raggiunto</div>
+        <div class="arrived-sub">U bevindt zich op de doellocatie.</div>
+        ${a.audio ? `<div class="audio-player">
+          <div class="audio-label">▶ Intercepted transmission</div>
+          <audio controls src="${a.audio}"></audio>
+        </div>` : ''}
+      </div>
+      ${unlockNotice}`;
+  }
+
+  // ── MAP MODE ──
   function renderMapMode() {
     const a = activeAssignment;
     document.getElementById('task-content').innerHTML = `
@@ -348,69 +452,37 @@
       </div>
       <div id="map-arrived-wrap"></div>`;
 
-    // Init Leaflet map
     leafletMap = L.map('leaflet-map', { zoomControl: true, attributionControl: false }).setView([a.lat, a.lng], 17);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(leafletMap);
 
-    // OpenStreetMap — gratis, geen sleutel nodig. Sepia via CSS.
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap'
-    }).addTo(leafletMap);
-
-    // Target marker — zelfde symbool als in de adresbalk
     const symbol = a.symbol || '📍';
     const targetIcon = L.divIcon({
       className: '',
-      html: `<div style="
-        font-size:2rem;line-height:1;
-        filter:drop-shadow(1px 2px 2px rgba(0,0,0,0.5));
-        transform:translateY(-50%);
-      ">${symbol}</div>`,
-      iconSize: [36, 36],
-      iconAnchor: [18, 36],
+      html: `<div style="font-size:2rem;line-height:1;filter:drop-shadow(1px 2px 2px rgba(0,0,0,0.5));transform:translateY(-50%);">${symbol}</div>`,
+      iconSize: [36, 36], iconAnchor: [18, 36],
     });
     L.marker([a.lat, a.lng], { icon: targetIcon }).addTo(leafletMap);
 
-    // Live player location — rode stip met witte rand + aankomstdetectie
     if (navigator.geolocation) {
       const playerIcon = L.divIcon({
         className: '',
-        html: `<div style="
-          width:18px;height:18px;
-          background:#c0152a;
-          border:3px solid #f0e6c8;
-          border-radius:50%;
-          box-shadow:0 0 0 4px rgba(192,21,42,0.3), 0 2px 6px rgba(0,0,0,0.4);
-        "></div>`,
-        iconSize: [18, 18],
-        iconAnchor: [9, 9],
+        html: `<div style="width:18px;height:18px;background:#c0152a;border:3px solid #f0e6c8;border-radius:50%;box-shadow:0 0 0 4px rgba(192,21,42,0.3),0 2px 6px rgba(0,0,0,0.4);"></div>`,
+        iconSize: [18, 18], iconAnchor: [9, 9],
       });
 
       let mapArrived = false;
       watchId = navigator.geolocation.watchPosition(pos => {
         const { latitude: lat, longitude: lng } = pos.coords;
-        if (!playerMarker) {
-          playerMarker = L.marker([lat, lng], { icon: playerIcon }).addTo(leafletMap);
-        } else {
-          playerMarker.setLatLng([lat, lng]);
-        }
+        if (!playerMarker) playerMarker = L.marker([lat, lng], { icon: playerIcon }).addTo(leafletMap);
+        else playerMarker.setLatLng([lat, lng]);
 
-        // Aankomstdetectie
         if (!mapArrived) {
           const dist = haversine(lat, lng, a.lat, a.lng);
           if (dist <= a.radius) {
             mapArrived = true;
+            markCompleted(a.id);
             const wrap = document.getElementById('map-arrived-wrap');
-            if (wrap) wrap.innerHTML = `
-              <div class="arrived-banner">
-                <div class="arrived-icon">${a.symbol || '★'}</div>
-                <div class="arrived-title">Obiettivo Raggiunto</div>
-                <div class="arrived-sub">U bevindt zich op de doellocatie.</div>
-                ${a.audio ? `<div class="audio-player">
-                  <div class="audio-label">▶ Intercepted transmission</div>
-                  <audio controls src="${a.audio}"></audio>
-                </div>` : ''}
-              </div>`;
+            if (wrap) wrap.innerHTML = arrivedHTML(a);
           }
         }
       }, null, { enableHighAccuracy: true, maximumAge: 0 });
@@ -438,9 +510,7 @@
         </div>
         <div class="arrow-wrapper">
           <div class="arrow-ring">
-            <div class="arrow-rotate" id="arrow-rotate">
-              <div class="nav-arrow"></div>
-            </div>
+            <div class="arrow-rotate" id="arrow-rotate"><div class="nav-arrow"></div></div>
           </div>
           <div class="arrow-hint" id="compass-status">▋ Signaal zoeken...</div>
         </div>
@@ -454,7 +524,7 @@
     startTracking();
   };
 
-  // ── GPS / INTERPOLATION ──
+  // ── GPS ──
   function deg2rad(d) { return d * Math.PI / 180; }
   function haversine(lat1, lng1, lat2, lng2) {
     const R = 6371000, dLat = deg2rad(lat2-lat1), dLng = deg2rad(lng2-lng1);
@@ -542,6 +612,49 @@
     gpsLat = null; gpsLng = null; gpsTimestamp = null; gpsSpeed = 0; gpsBearing = null;
   }
 
+  // ── MARKDOWN RENDERER ──
+  function renderMd(md) {
+    return md
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/^### (.+)$/gm, '<h3 style="font-family:\'Special Elite\',cursive;color:var(--red);margin:1rem 0 0.4rem;font-size:1rem;">$1</h3>')
+      .replace(/^## (.+)$/gm,  '<h2 style="font-family:\'Special Elite\',cursive;color:var(--ink);margin:1rem 0 0.4rem;font-size:1.2rem;border-bottom:1px solid var(--paper-dark);padding-bottom:0.3rem;">$1</h2>')
+      .replace(/^# (.+)$/gm,   '<h1 style="font-family:\'Special Elite\',cursive;color:var(--ink);margin:0.5rem 0;font-size:1.4rem;">$1</h1>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g,     '<em>$1</em>')
+      .replace(/^- (.+)$/gm,    '<li style="margin-left:1.2rem;margin-bottom:0.3rem;">$1</li>')
+      .replace(/(<li[^>]*>.*?<\/li>\n?)+/gs, m => `<ul style="margin:0.5rem 0;">${m}</ul>`)
+      .replace(/\n\n+/g, '</p><p style="margin:0.6rem 0;">')
+      .replace(/^/, '<p style="margin:0;">') + '</p>';
+  }
+
+  // ── OPEN TASK ──
+  let compassArrived = false;
+  window.openTask = function(id) {
+    compassArrived = false;
+    activeAssignment = assignments.find(a => a.id === id);
+    if (!activeAssignment) return;
+    const a = activeAssignment;
+    document.getElementById('student-picker').style.display = 'none';
+    document.getElementById('task-detail').classList.add('active');
+    document.getElementById('task-symbol').textContent = a.symbol || '';
+    document.getElementById('task-title').textContent = a.name;
+
+    const descEl = document.getElementById('task-desc');
+    if (a.descMd) {
+      descEl.innerHTML = '<span style="color:var(--muted);font-size:0.8rem;letter-spacing:0.05em;">Dossier laden...</span>';
+      fetch(a.descMd)
+        .then(r => r.ok ? r.text() : Promise.reject(r.status))
+        .then(md => { descEl.innerHTML = renderMd(md); })
+        .catch(() => { descEl.textContent = a.desc || ''; });
+    } else {
+      descEl.textContent = a.desc || '';
+    }
+
+    if (a.mode === 'map') renderMapMode();
+    else renderCompassMode();
+  };
+
+  // ── COMPASS UI UPDATE ──
   function updateCompassUI() {
     if (!activeAssignment || currentLat === null) return;
     const a = activeAssignment;
@@ -562,17 +675,10 @@
     if (status) { status.textContent = deviceHeading !== null ? '✓ Stap in deze richting' : '⚠ Geen kompas — beweeg voor richting'; status.style.color = 'var(--muted)'; }
 
     const arrivedWrap = document.getElementById('arrived-wrap');
-    if (arrivedWrap && dist <= a.radius && !arrivedWrap.innerHTML) {
-      arrivedWrap.innerHTML = `
-        <div class="arrived-banner">
-          <div class="arrived-icon">${a.symbol || '★'}</div>
-          <div class="arrived-title">Obiettivo Raggiunto</div>
-          <div class="arrived-sub">U bevindt zich op de doellocatie.</div>
-          ${a.audio ? `<div class="audio-player">
-            <div class="audio-label">▶ Intercepted transmission</div>
-            <audio controls src="${a.audio}"></audio>
-          </div>` : ''}
-        </div>`;
+    if (arrivedWrap && dist <= a.radius && !compassArrived) {
+      compassArrived = true;
+      markCompleted(a.id);
+      arrivedWrap.innerHTML = arrivedHTML(a);
     }
   }
 </script>
