@@ -252,6 +252,12 @@
       </div>
 
       <div class="form-group">
+        <label>Zichtbaar voor groepen</label>
+        <div class="unlock-hint">Leeg = zichtbaar voor alle groepen. Vink aan = alleen voor geselecteerde groepen.</div>
+        <div class="unlock-list" id="visible-to-list"></div>
+      </div>
+
+      <div class="form-group">
         <label>Zichtbaar na het bezoeken van...</label>
         <div class="unlock-hint">Laat leeg = altijd zichtbaar. Vink aan = pas zichtbaar na een van de gekozen locaties.</div>
         <div class="unlock-list" id="unlock-list">
@@ -308,6 +314,29 @@
   const NUM_GROUPS = 10;
   let assignments = [], selectedMode = 'compass', editingId = null, dragSrcIndex = null;
   let selectedUnlocks = new Set();
+  let selectedVisibleTo = new Set();
+
+  // ── RENDER GROUP SELECTOR ──
+  function renderVisibleToList() {
+    const list = document.getElementById('visible-to-list');
+    let html = '';
+    for (let i = 1; i <= NUM_GROUPS; i++) {
+      const id = `groep-${i}`;
+      const sel = selectedVisibleTo.has(id);
+      html += `<div class="unlock-item ${sel ? 'selected' : ''}" onclick="toggleVisibleTo('${id}')">
+        <div class="unlock-item-symbol" style="font-size:0.75rem;color:var(--muted);">G${i}</div>
+        <div class="unlock-item-name">Groep ${i}</div>
+        <div class="unlock-check">${sel ? '✓' : ''}</div>
+      </div>`;
+    }
+    list.innerHTML = html;
+  }
+  window.toggleVisibleTo = function(id) {
+    if (selectedVisibleTo.has(id)) selectedVisibleTo.delete(id);
+    else selectedVisibleTo.add(id);
+    renderVisibleToList();
+  };
+  renderVisibleToList();
 
   // ── SYMBOL ──
   window.updateSymbolPreview = function() {
@@ -388,13 +417,14 @@
     const audio = document.getElementById('inp-audio').value.trim();
     const descMd = document.getElementById('inp-desc-md').value.trim();
     const unlockedBy = [...selectedUnlocks];
+    const visibleTo = [...selectedVisibleTo];
 
     if (!name) { toast('Voer een naam in', true); return; }
     if (isNaN(lat) || isNaN(lng)) { toast('Voer geldige coördinaten in', true); return; }
 
     setSaving('Opslaan...');
     try {
-      const data = { name, desc, symbol, lat, lng, radius, mode: selectedMode, address, audio, unlockedBy, descMd };
+      const data = { name, desc, symbol, lat, lng, radius, mode: selectedMode, address, audio, unlockedBy, descMd, visibleTo };
       if (editingId) {
         await updateDoc(doc(db, 'assignments', editingId), data);
         toast('Opdracht bijgewerkt');
@@ -422,8 +452,10 @@
     document.getElementById('inp-audio').value = a.audio || '';
     document.getElementById('inp-desc-md').value = a.descMd || '';
     selectedUnlocks = new Set(a.unlockedBy || []);
+    selectedVisibleTo = new Set(a.visibleTo || []);
     selectMode(a.mode || 'compass');
     renderUnlockList();
+    renderVisibleToList();
     document.getElementById('form-panel-title').innerHTML = 'Opdracht bewerken <span class="panel-title-sub">BEWERKEN</span>';
     document.querySelectorAll('.assignment-card').forEach(c => c.classList.remove('editing'));
     document.getElementById('card-' + id)?.classList.add('editing');
@@ -443,6 +475,7 @@
   function resetForm() {
     editingId = null;
     selectedUnlocks = new Set();
+    selectedVisibleTo = new Set();
     ['inp-name','inp-desc','inp-lat','inp-lng','inp-address','inp-audio','inp-desc-md'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('inp-symbol').value = '★';
     document.getElementById('symbol-preview').textContent = '★';
@@ -451,6 +484,7 @@
     selectMode('compass');
     document.querySelectorAll('.assignment-card').forEach(c => c.classList.remove('editing'));
     renderUnlockList();
+    renderVisibleToList();
   }
 
   // ── RENDER LIST ──
@@ -480,6 +514,7 @@
             <div class="card-name">${a.name}</div>
             <div class="card-meta">${a.lat?.toFixed(4)}, ${a.lng?.toFixed(4)} · r=${a.radius}m</div>
             ${unlockNames.length ? `<div class="card-unlock-info">✦ Na: ${unlockNames.join(', ')}</div>` : ''}
+            ${(a.visibleTo||[]).length ? `<div class="card-unlock-info" style="color:var(--muted);">👥 ${a.visibleTo.map(g=>g.replace('groep-','G')).join(', ')}</div>` : ''}
           </div>
           <span class="mode-badge ${a.mode}">${a.mode === 'compass' ? 'pijl' : 'kaart'}</span>
           <div class="card-actions" onclick="event.stopPropagation()">
