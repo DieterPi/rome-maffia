@@ -318,29 +318,41 @@
   async function initGroup() {
     document.getElementById('header-group').textContent = groupLabel(currentGroup);
 
-    // Ensure group doc exists
+    // Start listeners immediately — don't block on group doc creation
     const groupRef = doc(db, 'groups', currentGroup);
-    const snap = await getDoc(groupRef);
-    if (!snap.exists()) {
-      await setDoc(groupRef, { completed: [], lastSeen: new Date().toISOString() });
-    }
 
-    // Listen to group progress in real-time
-    onSnapshot(groupRef, docSnap => {
-      groupProgress = docSnap.data()?.completed || [];
-      renderStudentGrid();
-    });
-
-    // Listen to assignments
+    // Listen to assignments first
     const q = query(collection(db, 'assignments'), orderBy('order', 'asc'));
     onSnapshot(q, snapshot => {
       assignments = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderStudentGrid();
+    }, err => {
+      document.getElementById('student-grid').innerHTML =
+        `<div class="empty-state">Fout bij laden: ${err.message}</div>`;
+    });
+
+    // Listen to group progress — create doc silently if missing
+    onSnapshot(groupRef, docSnap => {
+      if (!docSnap.exists()) {
+        setDoc(groupRef, { completed: [], lastSeen: new Date().toISOString() }).catch(() => {});
+        groupProgress = [];
+      } else {
+        groupProgress = docSnap.data()?.completed || [];
+      }
+      renderStudentGrid();
+    }, err => {
+      // Group doc not accessible — still show assignments without progress
+      console.warn('Group progress unavailable:', err.message);
       renderStudentGrid();
     });
   }
 
   // ── VISIBILITY LOGIC ──
   function isVisible(a) {
+    // Check group restriction: if visibleTo is set, only show to those groups
+    if (a.visibleTo && a.visibleTo.length > 0) {
+      if (!a.visibleTo.includes(currentGroup)) return false;
+    }
     // Always visible if no unlockedBy set
     if (!a.unlockedBy || a.unlockedBy.length === 0) return true;
     // Visible if at least one of the required assignments is completed
