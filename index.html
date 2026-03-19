@@ -88,7 +88,7 @@
     border-left-color: var(--muted); opacity: 0.6;
     box-shadow: 1px 1px 4px rgba(0,0,0,0.3);
   }
-  .student-card.completed:hover { transform: none; }
+  .student-card.completed:hover { transform: translateX(2px); box-shadow: 2px 2px 8px rgba(0,0,0,0.4); }
   .student-card.completed .student-card-name { text-decoration: line-through; color: #7a6040; }
   .student-symbol {
     width: 48px; height: 48px; background: var(--red);
@@ -398,7 +398,7 @@
 
   function cardHTML(a, completed) {
     return `
-      <div class="student-card ${completed ? 'completed' : ''}" onclick="${completed ? '' : `openTask('${a.id}')`}">
+      <div class="student-card ${completed ? 'completed' : ''}" onclick="openTask('${a.id}')">
         <div class="student-symbol">${a.symbol || '★'}</div>
         <div class="student-card-info">
           <div class="student-card-name">${a.name}</div>
@@ -575,13 +575,24 @@
     }, { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 });
 
     const handler = e => {
-      if (e.webkitCompassHeading !== undefined && e.webkitCompassHeading !== null) deviceHeading = e.webkitCompassHeading;
-      else if (e.absolute && e.alpha !== null) deviceHeading = (360 - e.alpha) % 360;
+      if (typeof e.webkitCompassHeading === 'number' && e.webkitCompassHeading !== null) {
+        // iOS: webkitCompassHeading is degrees clockwise from true north
+        deviceHeading = e.webkitCompassHeading;
+      } else if (typeof e.alpha === 'number' && e.alpha !== null) {
+        // Android: alpha is degrees counter-clockwise from north
+        // Use absolute if available, otherwise fall back to relative
+        deviceHeading = (360 - e.alpha) % 360;
+      }
       updateCompassUI();
     };
+
+    // iOS requires explicit permission request
     if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      DeviceOrientationEvent.requestPermission().then(s => { if (s === 'granted') window.addEventListener('deviceorientation', handler, true); });
+      DeviceOrientationEvent.requestPermission()
+        .then(s => { if (s === 'granted') window.addEventListener('deviceorientation', handler, true); })
+        .catch(() => {});
     } else {
+      // Android: prefer absolute orientation, fall back to relative
       window.addEventListener('deviceorientationabsolute', handler, true);
       window.addEventListener('deviceorientation', handler, true);
     }
@@ -681,7 +692,12 @@
     }
 
     const arrow = document.getElementById('arrow-rotate');
-    if (arrow) arrow.style.transform = `rotate(${deviceHeading !== null ? bear - deviceHeading : bear}deg)`;
+    if (arrow) {
+      const rotation = deviceHeading !== null ? bear - deviceHeading : bear;
+      // Normalize to -180..180 to avoid spinning the long way around
+      const normalized = ((rotation % 360) + 540) % 360 - 180;
+      arrow.style.transform = `rotate(${normalized}deg)`;
+    }
 
     const status = document.getElementById('compass-status');
     if (status) { status.textContent = deviceHeading !== null ? '✓ Stap in deze richting' : '⚠ Geen kompas — beweeg voor richting'; status.style.color = 'var(--muted)'; }
