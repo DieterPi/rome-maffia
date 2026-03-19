@@ -525,6 +525,7 @@
             <div class="arrow-rotate" id="arrow-rotate"><div class="nav-arrow"></div></div>
           </div>
           <div class="arrow-hint" id="compass-status">▋ Signaal zoeken...</div>
+          <div id="compass-debug" style="font-size:0.65rem;color:var(--muted);text-align:center;letter-spacing:0.05em;line-height:1.8;margin-top:0.3rem;"></div>
         </div>
         <div id="arrived-wrap"></div>
       </div>`;
@@ -560,11 +561,12 @@
         if (dt > 0) {
           const d = haversine(gpsLat, gpsLng, newLat, newLng);
           gpsSpeed = d / dt;
-          if (d > 1) gpsBearing = bearing(gpsLat, gpsLng, newLat, newLng);
+          if (d > 2) gpsBearing = bearing(gpsLat, gpsLng, newLat, newLng);
         }
       }
-      if (pos.coords.heading !== null && !isNaN(pos.coords.heading) && pos.coords.speed > 0.3) {
-        deviceHeading = pos.coords.heading; gpsBearing = pos.coords.heading; gpsSpeed = pos.coords.speed;
+      // Gebruik pos.coords.speed enkel voor interpolatie — NIET als kompasrichting
+      if (pos.coords.speed !== null && !isNaN(pos.coords.speed)) {
+        gpsSpeed = pos.coords.speed;
       }
       gpsLat = newLat; gpsLng = newLng; gpsTimestamp = pos.timestamp;
       // Altijd de echte GPS-positie tonen — interpolatie is enkel een bonus bij beweging
@@ -726,9 +728,15 @@
     const arrow = document.getElementById('arrow-rotate');
     if (arrow) {
       const rotation = deviceHeading !== null ? bear - deviceHeading : bear;
-      // Normalize to -180..180 to avoid spinning the long way around
       const normalized = ((rotation % 360) + 540) % 360 - 180;
       arrow.style.transform = `rotate(${normalized}deg)`;
+    }
+
+    // Debug info
+    const dbg = document.getElementById('compass-debug');
+    if (dbg) {
+      dbg.textContent =
+        `Doel: ${bear.toFixed(0)}°  |  Toestel: ${deviceHeading !== null ? deviceHeading.toFixed(0)+'°' : '—'}  |  Pijl: ${deviceHeading !== null ? (((bear - deviceHeading + 540) % 360) - 180).toFixed(0)+'°' : bear.toFixed(0)+'°'}`;
     }
 
     const status = document.getElementById('compass-status');
