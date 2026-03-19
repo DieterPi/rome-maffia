@@ -151,7 +151,7 @@
   .arrow-wrapper { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
   .arrow-ring { width: 240px; height: 240px; border-radius: 50%; background: var(--surface); border: 3px solid var(--border); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 6px var(--bg), 0 0 0 7px var(--border), 4px 4px 20px rgba(0,0,0,0.6); position: relative; }
   .arrow-ring::before { content: ''; position: absolute; inset: 12px; border-radius: 50%; border: 1px dashed rgba(107,76,30,0.4); }
-  .arrow-rotate { transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; align-items: center; justify-content: center; }
+  .arrow-rotate { transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; align-items: center; justify-content: center; }
   .nav-arrow { width: 0; height: 0; border-left: 26px solid transparent; border-right: 26px solid transparent; border-bottom: 104px solid var(--red); filter: drop-shadow(0 0 10px rgba(192,21,42,0.5)); position: relative; }
   .nav-arrow::after { content: ''; position: absolute; bottom: -104px; left: -17px; width: 0; height: 0; border-left: 17px solid transparent; border-right: 17px solid transparent; border-top: 52px solid rgba(192,21,42,0.2); }
   .arrow-hint { font-size: 0.8rem; color: var(--muted); text-align: center; max-width: 240px; line-height: 1.6; letter-spacing: 0.06em; text-transform: uppercase; }
@@ -567,43 +567,75 @@
         deviceHeading = pos.coords.heading; gpsBearing = pos.coords.heading; gpsSpeed = pos.coords.speed;
       }
       gpsLat = newLat; gpsLng = newLng; gpsTimestamp = pos.timestamp;
+      // Altijd de echte GPS-positie tonen — interpolatie is enkel een bonus bij beweging
       currentLat = gpsLat; currentLng = gpsLng;
-      updateAccuracyUI(); updateCompassUI(); startInterpolation();
+      updateAccuracyUI(); updateCompassUI();
+      startInterpolation();
     }, err => {
       const s = document.getElementById('compass-status');
       if (s) { s.textContent = '✗ GPS fout: ' + err.message; s.style.color = '#c0152a'; }
     }, { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 });
 
-    const handler = e => {
-      if (typeof e.webkitCompassHeading === 'number' && e.webkitCompassHeading !== null) {
-        // iOS: webkitCompassHeading is degrees clockwise from true north
-        deviceHeading = e.webkitCompassHeading;
-      } else if (typeof e.alpha === 'number' && e.alpha !== null) {
-        // Android: alpha is degrees counter-clockwise from north
-        // Use absolute if available, otherwise fall back to relative
-        deviceHeading = (360 - e.alpha) % 360;
+    // ── Kompas heading met smoothing ──
+    let smoothedHeading = null;
+    const ALPHA = 0.15; // smoothingfactor: lager = vloeibaarder maar trager
+
+    function updateHeading(raw) {
+      if (raw === null || raw === undefined || isNaN(raw)) return;
+      if (smoothedHeading === null) {
+        smoothedHeading = raw;
+      } else {
+        // Shortest-path interpolation over 360°
+        let diff = raw - smoothedHeading;
+        if (diff > 180) diff -= 360;
+        if (diff < -180) diff += 360;
+        smoothedHeading = (smoothedHeading + ALPHA * diff + 360) % 360;
       }
+      deviceHeading = smoothedHeading;
       updateCompassUI();
+    }
+
+    let usingAbsolute = false;
+
+    const absoluteHandler = e => {
+      if (typeof e.alpha !== 'number') return;
+      usingAbsolute = true;
+      updateHeading((360 - e.alpha) % 360);
     };
 
-    // iOS requires explicit permission request
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+    const relativeHandler = e => {
+      // Only use relative if no absolute events are coming in
+      if (usingAbsolute) return;
+      if (typeof e.webkitCompassHeading === 'number') {
+        updateHeading(e.webkitCompassHeading); // iOS
+      } else if (typeof e.alpha === 'number') {
+        updateHeading((360 - e.alpha) % 360);  // Android fallback
+      }
+    };
+
+    if (typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+      // iOS
       DeviceOrientationEvent.requestPermission()
-        .then(s => { if (s === 'granted') window.addEventListener('deviceorientation', handler, true); })
+        .then(s => {
+          if (s === 'granted') window.addEventListener('deviceorientation', relativeHandler, true);
+        })
         .catch(() => {});
     } else {
-      // Android: prefer absolute orientation, fall back to relative
-      window.addEventListener('deviceorientationabsolute', handler, true);
-      window.addEventListener('deviceorientation', handler, true);
+      // Android: probeer absolute eerst, val terug op relatief
+      window.addEventListener('deviceorientationabsolute', absoluteHandler, true);
+      window.addEventListener('deviceorientation', relativeHandler, true);
     }
   }
 
   function startInterpolation() {
     if (interpFrame) cancelAnimationFrame(interpFrame);
+    // Alleen interpoleren bij duidelijke beweging (> 1 m/s = ~3.6 km/h)
+    if (!gpsLat || !gpsBearing || gpsSpeed < 1.0) return;
     const step = () => {
-      if (!gpsLat || !gpsBearing || gpsSpeed < 0.3) return;
       const age = (Date.now() - gpsTimestamp) / 1000;
-      if (age > 8) return;
+      // Stop na 3 seconden of als er een nieuwe GPS-fix binnen moet komen
+      if (age > 3) return;
       const R = 6371000, d = gpsSpeed * age;
       const bR = deg2rad(gpsBearing), laR = deg2rad(gpsLat), loR = deg2rad(gpsLng);
       const nlaR = Math.asin(Math.sin(laR)*Math.cos(d/R) + Math.cos(laR)*Math.sin(d/R)*Math.cos(bR));
