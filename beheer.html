@@ -127,7 +127,9 @@
   .group-progress-bar { height: 4px; background: var(--surface2); margin-bottom: 0.8rem; }
   .group-progress-fill { height: 100%; background: var(--green); transition: width 0.4s; }
   .group-visited { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.8rem; min-height: 28px; }
-  .group-visited-chip { background: rgba(106,154,64,0.15); border: 1px solid var(--green-dim); color: var(--green); font-size: 0.65rem; padding: 0.15rem 0.4rem; letter-spacing: 0.04em; }
+  .group-visited-chip { background: rgba(106,154,64,0.15); border: 1px solid var(--green-dim); color: var(--green); font-size: 0.65rem; padding: 0.15rem 0.4rem; letter-spacing: 0.04em; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 0.3rem; }
+  .group-visited-chip:hover { background: rgba(192,21,42,0.12); border-color: var(--red-dim); color: var(--red); }
+  .chip-remove { font-size: 0.6rem; opacity: 0.7; }
   .group-empty { font-size: 0.72rem; color: var(--muted); font-style: italic; letter-spacing: 0.05em; }
   .group-lastseen { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.05em; margin-bottom: 0.8rem; }
   .group-actions { display: flex; gap: 0.5rem; }
@@ -252,6 +254,23 @@
       </div>
 
       <div class="form-group">
+        <label>Vraag na aankomst (optioneel)</label>
+        <div class="unlock-hint">Laat leeg = geen vraag. Invullen = leerling moet antwoorden na aankomst.</div>
+        <textarea id="inp-question" placeholder="bv. Welk jaar stond op de gedenksteen?" style="min-height:60px;" oninput="toggleAnswerFields()"></textarea>
+      </div>
+
+      <div class="form-group" id="group-answer" style="display:none;">
+        <label>Correct antwoord</label>
+        <input type="text" id="inp-answer" placeholder="bv. 1978">
+        <div class="geo-hint">Niet hoofdlettergevoelig. Leerling moet dit exact invullen.</div>
+      </div>
+
+      <div class="form-group" id="group-answer-text" style="display:none;">
+        <label>Tekst bij correct antwoord</label>
+        <textarea id="inp-answer-text" placeholder="bv. Correct! Op 9 mei 1978 werd Aldo Moro hier gevonden..." style="min-height:80px;"></textarea>
+      </div>
+
+      <div class="form-group">
         <label>Zichtbaar voor groepen</label>
         <div class="unlock-hint">Leeg = zichtbaar voor alle groepen. Vink aan = alleen voor geselecteerde groepen.</div>
         <div class="unlock-list" id="visible-to-list"></div>
@@ -338,6 +357,13 @@
   };
   renderVisibleToList();
 
+  // ── QUESTION FIELDS ──
+  window.toggleAnswerFields = function() {
+    const hasQ = document.getElementById('inp-question').value.trim().length > 0;
+    document.getElementById('group-answer').style.display = hasQ ? 'block' : 'none';
+    document.getElementById('group-answer-text').style.display = hasQ ? 'block' : 'none';
+  };
+
   // ── SYMBOL ──
   window.updateSymbolPreview = function() {
     const v = document.getElementById('inp-symbol').value || '★';
@@ -416,6 +442,9 @@
     const address = document.getElementById('inp-address').value.trim();
     const audio = document.getElementById('inp-audio').value.trim();
     const descMd = document.getElementById('inp-desc-md').value.trim();
+    const question = document.getElementById('inp-question').value.trim();
+    const answer = document.getElementById('inp-answer').value.trim();
+    const answerText = document.getElementById('inp-answer-text').value.trim();
     const unlockedBy = [...selectedUnlocks];
     const visibleTo = [...selectedVisibleTo];
 
@@ -424,7 +453,7 @@
 
     setSaving('Opslaan...');
     try {
-      const data = { name, desc, symbol, lat, lng, radius, mode: selectedMode, address, audio, unlockedBy, descMd, visibleTo };
+      const data = { name, desc, symbol, lat, lng, radius, mode: selectedMode, address, audio, unlockedBy, descMd, visibleTo, question, answer, answerText };
       if (editingId) {
         await updateDoc(doc(db, 'assignments', editingId), data);
         toast('Opdracht bijgewerkt');
@@ -451,6 +480,10 @@
     document.getElementById('inp-address').value = a.address || '';
     document.getElementById('inp-audio').value = a.audio || '';
     document.getElementById('inp-desc-md').value = a.descMd || '';
+    document.getElementById('inp-question').value = a.question || '';
+    document.getElementById('inp-answer').value = a.answer || '';
+    document.getElementById('inp-answer-text').value = a.answerText || '';
+    toggleAnswerFields();
     selectedUnlocks = new Set(a.unlockedBy || []);
     selectedVisibleTo = new Set(a.visibleTo || []);
     selectMode(a.mode || 'compass');
@@ -476,13 +509,15 @@
     editingId = null;
     selectedUnlocks = new Set();
     selectedVisibleTo = new Set();
-    ['inp-name','inp-desc','inp-lat','inp-lng','inp-address','inp-audio','inp-desc-md'].forEach(id => document.getElementById(id).value = '');
+    ['inp-name','inp-desc','inp-lat','inp-lng','inp-address','inp-audio','inp-desc-md','inp-question','inp-answer','inp-answer-text'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('inp-symbol').value = '★';
     document.getElementById('symbol-preview').textContent = '★';
     document.getElementById('inp-radius').value = '25';
     document.getElementById('form-panel-title').innerHTML = 'Nieuwe opdracht <span class="panel-title-sub">INVOER</span>';
     selectMode('compass');
     document.querySelectorAll('.assignment-card').forEach(c => c.classList.remove('editing'));
+    document.getElementById('group-answer').style.display = 'none';
+    document.getElementById('group-answer-text').style.display = 'none';
     renderUnlockList();
     renderVisibleToList();
   }
@@ -573,7 +608,7 @@
       const pct = total > 0 ? Math.round((done.length / total) * 100) : 0;
       const chips = done.map(id => {
         const a = assignments.find(x => x.id === id);
-        return a ? `<span class="group-visited-chip">${a.symbol || '★'} ${a.name}</span>` : '';
+        return a ? `<span class="group-visited-chip" title="Klik om te verwijderen" onclick="resetLocation('${g.id}', '${g.label}', '${id}', '${a.name}')">${a.symbol || '★'} ${a.name} <span class="chip-remove">✕</span></span>` : '';
       }).join('');
       const lastSeen = g.lastSeen ? new Date(g.lastSeen).toLocaleString('nl-BE', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : null;
 
@@ -586,9 +621,10 @@
           <div class="group-progress-bar"><div class="group-progress-fill" style="width:${pct}%"></div></div>
           ${lastSeen ? `<div class="group-lastseen">Laatste activiteit: ${lastSeen}</div>` : ''}
           <div class="group-visited">${chips || '<span class="group-empty">Nog geen locaties bezocht</span>'}</div>
+          <div class="group-lastseen" style="margin-top:0.4rem;">Klik op een locatie om die te verwijderen uit de voortgang.</div>
           <div class="group-actions">
             <button class="btn-small green" onclick="refreshGroups()">↺ Vernieuwen</button>
-            <button class="btn-small" onclick="resetGroup('${g.id}', '${g.label}')">Reset voortgang</button>
+            <button class="btn-small" onclick="resetGroup('${g.id}', '${g.label}')">Reset alles</button>
           </div>
         </div>`;
     }).join('');
@@ -597,8 +633,22 @@
   window._renderGroupsTab = renderGroupsTab;
   window.refreshGroups = function() { renderGroupsTab(); };
 
+  window.resetLocation = async function(groupId, groupLabel, assignmentId, assignmentName) {
+    if (!confirm(`"${assignmentName}" verwijderen uit voortgang van ${groupLabel}?`)) return;
+    try {
+      const groupRef = doc(db, 'groups', groupId);
+      const snap = await getDoc(groupRef);
+      if (!snap.exists()) return;
+      const current = snap.data().completed || [];
+      const updated = current.filter(id => id !== assignmentId);
+      await updateDoc(groupRef, { completed: updated });
+      toast(`${assignmentName} verwijderd uit ${groupLabel}`);
+      renderGroupsTab();
+    } catch (e) { toast('Fout: ' + e.message, true); }
+  };
+
   window.resetGroup = async function(groupId, label) {
-    if (!confirm(`Voortgang van ${label} wissen?`)) return;
+    if (!confirm(`Volledige voortgang van ${label} wissen?`)) return;
     try {
       await setDoc(doc(db, 'groups', groupId), { completed: [], lastSeen: null });
       toast(`${label} gereset`);
