@@ -189,6 +189,30 @@
 
   /* ── UNLOCKED NOTIFICATION ── */
   .unlocked-notice { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid #6a9a40; padding: 0.9rem 1rem; margin-top: 1rem; font-size: 0.95rem; color: #6a9a40; letter-spacing: 0.05em; }
+
+  /* ── QUESTION BLOCK ── */
+  .question-block { margin-top: 1.2rem; border-top: 2px solid var(--red); padding-top: 1rem; text-align: left; }
+  .question-label { font-size: 0.7rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 0.5rem; }
+  .question-text { font-family: 'Special Elite', cursive; font-size: 1.1rem; color: var(--ink); margin-bottom: 0.9rem; line-height: 1.5; }
+  .question-input-row { display: flex; gap: 0.5rem; }
+  .question-input {
+    flex: 1; background: white; border: 2px solid var(--paper-dark);
+    color: var(--ink); font-family: 'Courier Prime', monospace;
+    font-size: 1rem; padding: 0.6rem 0.8rem; outline: none;
+    transition: border-color 0.2s;
+  }
+  .question-input:focus { border-color: var(--red); }
+  .question-input:disabled { background: #f5f0e0; color: var(--muted); }
+  .question-submit {
+    background: var(--red); color: var(--paper); border: none;
+    padding: 0.6rem 1.1rem; font-size: 1.1rem; cursor: pointer;
+    box-shadow: 2px 2px 0 var(--red-dim); transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .question-submit:hover:not(:disabled) { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--red-dim); }
+  .question-submit:disabled { background: var(--muted); box-shadow: none; cursor: default; }
+  .question-feedback { margin-top: 0.8rem; font-size: 0.95rem; line-height: 1.6; padding: 0.6rem 0.8rem; display: none; font-family: 'Courier Prime', monospace; color: var(--ink); border-left: 3px solid var(--muted); background: rgba(160,128,80,0.08); }
+  .question-feedback.show { display: block; }
 </style>
 </head>
 <body>
@@ -430,11 +454,20 @@
   }
 
   function arrivedHTML(a) {
-    // Which assignments does this one unlock?
     const unlocks = assignments.filter(x => (x.unlockedBy || []).includes(a.id));
     const unlockNotice = unlocks.length > 0
       ? `<div class="unlocked-notice">✦ Nieuw vrijgegeven: ${unlocks.map(x => x.name).join(', ')}</div>`
       : '';
+    const questionBlock = a.question ? `
+      <div class="question-block" id="question-block-${a.id}">
+        <div class="question-label">▋ Vraag</div>
+        <div class="question-text">${a.question}</div>
+        <div class="question-input-row">
+          <input type="text" class="question-input" id="answer-input-${a.id}" placeholder="Uw antwoord..." onkeydown="if(event.key==='Enter') checkAnswer('${a.id}')">
+          <button class="question-submit" onclick="checkAnswer('${a.id}')">→</button>
+        </div>
+        <div class="question-feedback" id="answer-feedback-${a.id}"></div>
+      </div>` : '';
     return `
       <div class="arrived-banner">
         <div class="arrived-icon">${a.symbol || '★'}</div>
@@ -444,9 +477,33 @@
           <div class="audio-label">▶ Intercepted transmission</div>
           <audio controls src="${a.audio}"></audio>
         </div>` : ''}
+        ${questionBlock}
       </div>
       ${unlockNotice}`;
   }
+
+  window.checkAnswer = function(assignmentId) {
+    const a = assignments.find(x => x.id === assignmentId);
+    if (!a) return;
+    const input = document.getElementById(`answer-input-${assignmentId}`);
+    const feedback = document.getElementById(`answer-feedback-${assignmentId}`);
+    const btn = document.querySelector(`#question-block-${assignmentId} .question-submit`);
+    if (!input || !feedback) return;
+
+    // Blokkeer na eerste poging, ongeacht antwoord
+    input.disabled = true;
+    if (btn) btn.disabled = true;
+
+    const given = input.value.trim().toLowerCase();
+    const correct = (a.answer || '').trim().toLowerCase();
+
+    feedback.className = 'question-feedback show';
+    if (given === correct) {
+      feedback.innerHTML = a.answerText || '✓ Correct.';
+    } else {
+      feedback.textContent = 'Foutief antwoord. Ga naar de volgende locatie.';
+    }
+  };
 
   // ── MAP MODE ──
   function renderMapMode() {
