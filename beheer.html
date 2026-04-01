@@ -641,7 +641,10 @@
       if (!snap.exists()) return;
       const current = snap.data().completed || [];
       const updated = current.filter(id => id !== assignmentId);
-      await updateDoc(groupRef, { completed: updated });
+      // Verwijder ook het opgeslagen antwoord
+      const answers = snap.data().answers || {};
+      delete answers[assignmentId];
+      await updateDoc(groupRef, { completed: updated, answers });
       toast(`${assignmentName} verwijderd uit ${groupLabel}`);
       renderGroupsTab();
     } catch (e) { toast('Fout: ' + e.message, true); }
@@ -650,7 +653,7 @@
   window.resetGroup = async function(groupId, label) {
     if (!confirm(`Volledige voortgang van ${label} wissen?`)) return;
     try {
-      await setDoc(doc(db, 'groups', groupId), { completed: [], lastSeen: null });
+      await setDoc(doc(db, 'groups', groupId), { completed: [], answers: {}, lastSeen: null });
       toast(`${label} gereset`);
       renderGroupsTab();
     } catch (e) { toast('Fout: ' + e.message, true); }
