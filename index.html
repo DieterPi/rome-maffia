@@ -267,12 +267,7 @@
 </div>
 
 <script>
-  document.addEventListener('click', function requestFS() {
-    const el = document.documentElement;
-    if (el.requestFullscreen) el.requestFullscreen();
-    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-    document.removeEventListener('click', requestFS);
-  }, { once: true });
+  // Fullscreen uitgeschakeld — hindert scrollen bij toetsenbord
 </script>
 
 <script type="module">
@@ -293,7 +288,8 @@
 
   const NUM_GROUPS = 10;
   let currentGroup = null;
-  let groupProgress = []; // array of completed assignment IDs
+  let groupProgress = [];   // array of completed assignment IDs
+  let groupAnswers = {};    // { assignmentId: { correct: bool } }
   let assignments = [];
   let activeAssignment = null;
   let watchId = null, deviceHeading = null, currentLat = null, currentLng = null;
@@ -358,14 +354,15 @@
     // Listen to group progress — create doc silently if missing
     onSnapshot(groupRef, docSnap => {
       if (!docSnap.exists()) {
-        setDoc(groupRef, { completed: [], lastSeen: new Date().toISOString() }).catch(() => {});
+        setDoc(groupRef, { completed: [], answers: {}, lastSeen: new Date().toISOString() }).catch(() => {});
         groupProgress = [];
+        groupAnswers = {};
       } else {
         groupProgress = docSnap.data()?.completed || [];
+        groupAnswers = docSnap.data()?.answers || {};
       }
       renderStudentGrid();
     }, err => {
-      // Group doc not accessible — still show assignments without progress
       console.warn('Group progress unavailable:', err.message);
       renderStudentGrid();
     });
@@ -453,56 +450,89 @@
     });
   }
 
+  function questionBlockHTML(a) {
+    if (!a.question) return '';
+    const answerStatus = groupAnswers[a.id]; // { correct: bool } or undefined
+
+    if (answerStatus !== undefined) {
+      // Antwoord al gegeven — toon resultaat, geen invoer meer
+      const feedbackText = answerStatus.correct
+        ? (a.answerText || '✓ Correct.')
+        : 'Ga naar de volgende locatie.';
+      return `
+        <div class="question-block">
+          <div class="question-label">▋ Vraag</div>
+          <div class="question-text">${a.question}</div>
+          <div class="question-feedback show">${feedbackText}</div>
+        </div>`;
+    }
+
+    // Nog niet beantwoord — toon invoerveld
+    return `
+      <div class="question-block" id="question-block-${a.id}">
+        <div class="question-label">▋ Vraag</div>
+        <div class="question-text">${a.question}</div>
+        <div class="question-input-row">
+          <input type="text" class="question-input" id="answer-input-${a.id}"
+            placeholder="Uw antwoord..."
+            onkeydown="if(event.key==='Enter') checkAnswer('${a.id}')">
+          <button class="question-submit" onclick="checkAnswer('${a.id}')">→</button>
+        </div>
+        <div class="question-feedback" id="answer-feedback-${a.id}"></div>
+      </div>`;
+  }
+
   function arrivedHTML(a) {
     const unlocks = assignments.filter(x => (x.unlockedBy || []).includes(a.id));
     const unlockNotice = unlocks.length > 0
       ? `<div class="unlocked-notice">✦ Nieuw vrijgegeven: ${unlocks.map(x => x.name).join(', ')}</div>`
       : '';
-    const questionBlock = a.question ? `
-      <div class="question-block" id="question-block-${a.id}">
-        <div class="question-label">▋ Vraag</div>
-        <div class="question-text">${a.question}</div>
-        <div class="question-input-row">
-          <input type="text" class="question-input" id="answer-input-${a.id}" placeholder="Uw antwoord..." onkeydown="if(event.key==='Enter') checkAnswer('${a.id}')">
-          <button class="question-submit" onclick="checkAnswer('${a.id}')">→</button>
-        </div>
-        <div class="question-feedback" id="answer-feedback-${a.id}"></div>
-      </div>` : '';
     return `
       <div class="arrived-banner">
         <div class="arrived-icon">${a.symbol || '★'}</div>
-        <div class="arrived-title">Obiettivo Raggiunto</div>
-        <div class="arrived-sub">U bevindt zich op de doellocatie.</div>
+        <div class="arrived-title">Locatie bereikt</div>
         ${a.audio ? `<div class="audio-player">
           <div class="audio-label">▶ Intercepted transmission</div>
           <audio controls src="${a.audio}"></audio>
         </div>` : ''}
-        ${questionBlock}
+        ${questionBlockHTML(a)}
       </div>
       ${unlockNotice}`;
   }
 
-  window.checkAnswer = function(assignmentId) {
+  window.checkAnswer = async function(assignmentId) {
     const a = assignments.find(x => x.id === assignmentId);
     if (!a) return;
+    // Als al beantwoord (door ander toestel in zelfde groep), negeer
+    if (groupAnswers[assignmentId] !== undefined) return;
+
     const input = document.getElementById(`answer-input-${assignmentId}`);
     const feedback = document.getElementById(`answer-feedback-${assignmentId}`);
     const btn = document.querySelector(`#question-block-${assignmentId} .question-submit`);
     if (!input || !feedback) return;
 
-    // Blokkeer na eerste poging, ongeacht antwoord
+    // Blokkeer meteen — voor alle toestellen in de groep
     input.disabled = true;
     if (btn) btn.disabled = true;
 
     const given = input.value.trim().toLowerCase();
     const correct = (a.answer || '').trim().toLowerCase();
+    const isCorrect = given === correct;
 
+    // Sla op in Firestore — zichtbaar voor alle toestellen in de groep
+    try {
+      const groupRef = doc(db, 'groups', currentGroup);
+      await updateDoc(groupRef, {
+        [`answers.${assignmentId}`]: { correct: isCorrect },
+        lastSeen: new Date().toISOString()
+      });
+    } catch (e) { console.warn('Answer save failed:', e); }
+
+    // Toon feedback lokaal (Firestore onSnapshot update volgt ook)
     feedback.className = 'question-feedback show';
-    if (given === correct) {
-      feedback.innerHTML = a.answerText || '✓ Correct.';
-    } else {
-      feedback.textContent = 'Foutief antwoord. Ga naar de volgende locatie.';
-    }
+    feedback.innerHTML = isCorrect
+      ? (a.answerText || '✓ Correct.')
+      : 'Ga naar de volgende locatie.';
   };
 
   // ── MAP MODE ──
