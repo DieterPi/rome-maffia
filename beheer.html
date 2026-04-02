@@ -143,10 +143,90 @@
   .toast.show { transform: translateX(-50%) translateY(0); }
   .toast.error { color: #ff8080; }
 
+  /* ── LOGIN OVERLAY ── */
+  .login-overlay {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999; padding: 2rem;
+  }
+  .login-box {
+    background: var(--surface); border: 2px solid var(--red);
+    padding: 2.5rem 2rem; max-width: 360px; width: 100%;
+    box-shadow: 6px 6px 0 var(--red-dim); position: relative;
+  }
+  .login-box::before {
+    content: 'ACCESSO RISERVATO';
+    position: absolute; top: -0.7rem; left: 1rem;
+    background: var(--red); color: var(--paper);
+    font-size: 0.6rem; padding: 0.15rem 0.6rem; letter-spacing: 0.2em;
+  }
+  .login-title { font-family: 'Special Elite', cursive; font-size: 1.4rem; color: var(--text); margin-bottom: 0.4rem; }
+  .login-sub { font-size: 0.78rem; color: var(--muted); margin-bottom: 1.5rem; letter-spacing: 0.04em; line-height: 1.6; }
+  .login-input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border-light);
+    color: var(--text); font-family: 'Courier Prime', monospace;
+    font-size: 1.1rem; padding: 0.7rem 0.9rem; outline: none;
+    letter-spacing: 0.15em; margin-bottom: 0.8rem;
+    transition: border-color 0.2s;
+  }
+  .login-input:focus { border-color: var(--red); }
+  .login-btn {
+    width: 100%; padding: 0.85rem; background: var(--red); color: var(--paper); border: none;
+    font-family: 'Special Elite', cursive; font-size: 1rem; cursor: pointer;
+    box-shadow: 3px 3px 0 var(--red-dim); transition: all 0.15s; letter-spacing: 0.05em;
+  }
+  .login-btn:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--red-dim); }
+  .login-error { font-size: 0.8rem; color: var(--red); margin-top: 0.6rem; min-height: 1.2rem; letter-spacing: 0.05em; }
+
   @media (max-width: 768px) { .admin-layout { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
+
+<!-- Login overlay -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <div class="login-title">Beheerstoegang</div>
+    <div class="login-sub">Voer de toegangscode in om verder te gaan.</div>
+    <input type="password" class="login-input" id="login-input"
+      placeholder="••••••••"
+      onkeydown="if(event.key==='Enter') submitLogin()">
+    <button class="login-btn" onclick="submitLogin()">Toegang verkrijgen</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<script>
+  // SHA-256 hash van het wachtwoord — het wachtwoord zelf staat niet in de code.
+  // Huidig wachtwoord: moro1978
+  // Om te wijzigen: bereken de SHA-256 hash van het nieuwe wachtwoord via
+  // https://emn178.github.io/online-tools/sha256.html en vervang de string hieronder.
+  const CORRECT_HASH = '6ed18fc042aa11963191bb25592a4525338096c0d4c315eb4262c3b7459c1ccc';
+  const SESSION_KEY = 'moro-beheer-auth';
+
+  async function hashString(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function submitLogin() {
+    const val = document.getElementById('login-input').value;
+    const hash = await hashString(val);
+    if (hash === CORRECT_HASH) {
+      sessionStorage.setItem(SESSION_KEY, '1');
+      document.getElementById('login-overlay').style.display = 'none';
+    } else {
+      document.getElementById('login-error').textContent = 'Toegangscode onjuist.';
+      document.getElementById('login-input').value = '';
+      document.getElementById('login-input').focus();
+    }
+  }
+
+  // Controleer bij laden of sessie al geauthenticeerd is
+  if (sessionStorage.getItem(SESSION_KEY) === '1') {
+    document.getElementById('login-overlay').style.display = 'none';
+  }
+</script>
 
 <header>
   <div class="logo">Operazione <span>Moro</span> — Beheer</div>
