@@ -370,14 +370,14 @@
 
   // ── VISIBILITY LOGIC ──
   function isVisible(a) {
-    // Check group restriction: if visibleTo is set, only show to those groups
+    // Check group restriction
     if (a.visibleTo && a.visibleTo.length > 0) {
       if (!a.visibleTo.includes(currentGroup)) return false;
     }
-    // Always visible if no unlockedBy set
+    // Altijd zichtbaar als geen unlockedBy ingesteld
     if (!a.unlockedBy || a.unlockedBy.length === 0) return true;
-    // Visible if at least one of the required assignments is completed
-    return a.unlockedBy.some(reqId => groupProgress.includes(reqId));
+    // AND-logica: alle vereiste locaties moeten bezocht zijn
+    return a.unlockedBy.every(reqId => groupProgress.includes(reqId));
   }
 
   function isCompleted(a) {
@@ -482,9 +482,9 @@
       </div>`;
   }
 
-  function arrivedHTML(a) {
+  function arrivedHTML(a, showUnlockNotice = false) {
     const unlocks = assignments.filter(x => (x.unlockedBy || []).includes(a.id));
-    const unlockNotice = unlocks.length > 0
+    const unlockNotice = showUnlockNotice && unlocks.length > 0
       ? `<div class="unlocked-notice">✦ Nieuw vrijgegeven: ${unlocks.map(x => x.name).join(', ')}</div>`
       : '';
     return `
@@ -583,7 +583,7 @@
             mapArrived = true;
             markCompleted(a.id);
             const wrap = document.getElementById('map-arrived-wrap');
-            if (wrap) wrap.innerHTML = arrivedHTML(a);
+            if (wrap) wrap.innerHTML = arrivedHTML(a, true);
           }
         }
       }, null, { enableHighAccuracy: true, maximumAge: 0 });
@@ -854,7 +854,7 @@
         const distDisplay = compassUI.querySelector('.distance-display');
         if (distDisplay) distDisplay.style.display = 'none';
       }
-      arrivedWrap.innerHTML = arrivedHTML(a);
+      arrivedWrap.innerHTML = arrivedHTML(a, true);
     }
   }
 </script>
