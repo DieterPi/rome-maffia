@@ -495,6 +495,35 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  window.duplicateAssignment = async function(id) {
+    const a = assignments.find(x => x.id === id);
+    if (!a) return;
+    setSaving('Dupliceren...');
+    try {
+      const copy = {
+        name: a.name + ' (kopie)',
+        desc: a.desc || '',
+        symbol: a.symbol || '★',
+        lat: a.lat, lng: a.lng,
+        radius: a.radius || 25,
+        mode: a.mode || 'compass',
+        address: a.address || '',
+        audio: a.audio || '',
+        descMd: a.descMd || '',
+        question: a.question || '',
+        answer: a.answer || '',
+        answerText: a.answerText || '',
+        // Reset groepslogica
+        visibleTo: [],
+        unlockedBy: [],
+        order: assignments.length,
+      };
+      await addDoc(collection(db, 'assignments'), copy);
+      toast('Opdracht gedupliceerd');
+      setSaving('');
+    } catch (e) { setSaving(''); toast('Fout: ' + e.message, true); }
+  };
+
   window.deleteAssignment = async function(id) {
     if (!confirm('Opdracht verwijderen?')) return;
     try {
@@ -553,6 +582,7 @@
           </div>
           <span class="mode-badge ${a.mode}">${a.mode === 'compass' ? 'pijl' : 'kaart'}</span>
           <div class="card-actions" onclick="event.stopPropagation()">
+            <button class="btn-small" style="color:var(--muted)" onclick="duplicateAssignment('${a.id}')">⎘</button>
             <button class="btn-danger" onclick="deleteAssignment('${a.id}')">✕</button>
           </div>
         </div>`;
