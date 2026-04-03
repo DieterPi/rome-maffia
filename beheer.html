@@ -699,8 +699,6 @@
   async function renderGroupsTab() {
     const grid = document.getElementById('groups-grid');
     grid.innerHTML = '<div class="empty-state">Groepsdata ophalen...</div>';
-
-    const total = assignments.length;
     const groupData = [];
 
     for (let i = 1; i <= NUM_GROUPS; i++) {
@@ -715,8 +713,15 @@
 
     grid.innerHTML = groupData.map(g => {
       const done = g.completed || [];
-      const pct = total > 0 ? Math.round((done.length / total) * 100) : 0;
-      const chips = done.map(id => {
+      // Tel alleen locaties die voor deze groep zichtbaar zijn
+      const groupId = g.id;
+      const relevant = assignments.filter(a =>
+        !a.visibleTo || a.visibleTo.length === 0 || a.visibleTo.includes(groupId)
+      );
+      const total = relevant.length;
+      const donRelevant = done.filter(id => relevant.some(a => a.id === id));
+      const pct = total > 0 ? Math.round((donRelevant.length / total) * 100) : 0;
+      const chips = donRelevant.map(id => {
         const a = assignments.find(x => x.id === id);
         return a ? `<span class="group-visited-chip" title="Klik om te verwijderen" onclick="resetLocation('${g.id}', '${g.label}', '${id}', '${a.name}')">${a.symbol || '★'} ${a.name} <span class="chip-remove">✕</span></span>` : '';
       }).join('');
@@ -726,7 +731,7 @@
         <div class="group-card">
           <div class="group-card-header">
             <div class="group-card-name">${g.label}</div>
-            <div class="group-card-count">${done.length}/${total}</div>
+            <div class="group-card-count">${donRelevant.length}/${total}</div>
           </div>
           <div class="group-progress-bar"><div class="group-progress-fill" style="width:${pct}%"></div></div>
           ${lastSeen ? `<div class="group-lastseen">Laatste activiteit: ${lastSeen}</div>` : ''}
