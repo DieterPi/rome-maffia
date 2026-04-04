@@ -4,15 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Operazione Moro — Test</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root {
     --bg: #1a1208; --paper: #f0e6c8; --paper-dark: #d9cc9a;
-    --surface: #231a0a; --surface2: #2e2210;
-    --border: #6b4c1e; --border-light: #4a3010;
-    --red: #c0152a; --red-dim: #8a0f1e;
-    --text: #f0e6c8; --muted: #a08050; --ink: #1a1208;
-    --green: #6a9a40; --green-dim: #3a5a20;
+    --surface: #231a0a; --surface2: #2e2210; --border: #6b4c1e;
+    --red: #c0152a; --red-dim: #8a0f1e; --text: #f0e6c8; --muted: #a08050; --ink: #1a1208;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -21,6 +23,174 @@
     background-image: repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(255,255,255,0.015) 28px, rgba(255,255,255,0.015) 29px);
   }
 
+  /* ── HEADER ── */
+  header { background: var(--red); position: relative; overflow: hidden; }
+  .header-rule { height: 4px; background: var(--bg); }
+  .header-rule-thin { height: 1px; background: rgba(0,0,0,0.3); margin-top: 2px; }
+  .header-inner { display: flex; flex-direction: column; align-items: center; padding: 1.2rem 1rem 1rem; position: relative; z-index: 1; }
+  .header-eyebrow { font-size: 0.85rem; letter-spacing: 0.25em; color: rgba(240,230,200,0.6); text-transform: uppercase; margin-bottom: 0.3rem; }
+  .header-title { font-family: 'Special Elite', cursive; font-size: 2.2rem; color: var(--paper); text-shadow: 2px 2px 0 rgba(0,0,0,0.4); letter-spacing: 0.03em; }
+  .header-sub { font-size: 0.85rem; color: rgba(240,230,200,0.55); letter-spacing: 0.2em; margin-top: 0.4rem; text-transform: uppercase; }
+  .header-group { font-size: 0.82rem; color: rgba(240,230,200,0.8); letter-spacing: 0.15em; margin-top: 0.3rem; text-transform: uppercase; }
+  header::after { content: '★'; position: absolute; right: -10px; top: -10px; font-size: 120px; color: rgba(0,0,0,0.12); line-height: 1; pointer-events: none; }
+
+  /* ── GROUP PICKER ── */
+  .group-picker-overlay {
+    position: fixed; inset: 0; background: rgba(10,7,3,0.95);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 500; padding: 2rem;
+  }
+  .group-picker-box {
+    background: var(--surface); border: 2px solid var(--red);
+    padding: 2rem; max-width: 420px; width: 100%;
+    box-shadow: 6px 6px 0 var(--red-dim); position: relative;
+  }
+  .group-picker-box::before { content: 'IDENTIFICAZIONE'; position: absolute; top: -0.7rem; left: 1rem; background: var(--red); color: var(--paper); font-size: 0.6rem; padding: 0.15rem 0.6rem; letter-spacing: 0.2em; }
+  .group-picker-title { font-family: 'Special Elite', cursive; font-size: 1.5rem; color: var(--text); margin-bottom: 0.5rem; }
+  .group-picker-sub { font-size: 0.8rem; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.6; letter-spacing: 0.04em; }
+  .group-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 1.5rem; }
+  .group-btn {
+    padding: 0.85rem; border: 1px solid var(--border); background: var(--surface2);
+    color: var(--text); font-family: 'Special Elite', cursive; font-size: 1rem;
+    cursor: pointer; transition: all 0.15s; letter-spacing: 0.04em;
+  }
+  .group-btn:hover { border-color: var(--red); background: rgba(192,21,42,0.1); }
+  .group-btn.selected { background: var(--red); border-color: var(--red); color: var(--paper); }
+  .group-confirm {
+    width: 100%; padding: 0.9rem; background: var(--red); color: var(--paper); border: none;
+    font-family: 'Special Elite', cursive; font-size: 1.05rem; cursor: pointer;
+    box-shadow: 3px 3px 0 var(--red-dim); transition: all 0.15s; letter-spacing: 0.05em;
+    opacity: 0.4; pointer-events: none;
+  }
+  .group-confirm.active { opacity: 1; pointer-events: auto; }
+  .group-confirm.active:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--red-dim); }
+
+  /* ── LAYOUT ── */
+  .student-layout { max-width: 600px; margin: 0 auto; padding: 1.5rem; }
+
+  /* ── LIST HEADER ── */
+  .student-header { text-align: center; margin-bottom: 1.5rem; margin-top: 1.2rem; }
+  .classified-stamp { display: inline-block; border: 3px solid var(--red); color: var(--red); font-family: 'Special Elite', cursive; font-size: 1.2rem; letter-spacing: 0.15em; padding: 0.2rem 0.8rem; transform: rotate(-2deg); opacity: 0.85; margin-bottom: 0.8rem; }
+  .student-header h2 { font-family: 'Special Elite', cursive; font-size: 1.9rem; color: var(--paper); letter-spacing: 0.04em; }
+  .student-header p { color: var(--muted); font-size: 0.95rem; letter-spacing: 0.1em; margin-top: 0.4rem; text-transform: uppercase; }
+
+  /* ── MISSION CARDS ── */
+  .assignment-grid { display: grid; gap: 0.9rem; }
+  .student-card {
+    background: var(--paper); border: 1px solid var(--paper-dark);
+    border-left: 4px solid var(--red); padding: 1.1rem 1.3rem;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; gap: 1.1rem;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+  }
+  .student-card:hover { box-shadow: 3px 3px 16px rgba(0,0,0,0.6); transform: translateX(3px); }
+  .student-card.completed {
+    border-left-color: var(--muted); opacity: 0.6;
+    box-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+  }
+  .student-card.completed:hover { transform: translateX(2px); box-shadow: 2px 2px 8px rgba(0,0,0,0.4); }
+  .student-card.completed .student-card-name { text-decoration: line-through; color: #7a6040; }
+  .student-symbol {
+    width: 48px; height: 48px; background: var(--red);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; color: var(--paper); flex-shrink: 0; line-height: 1;
+  }
+  .student-card.completed .student-symbol { background: var(--muted); }
+  .student-card-info { flex: 1; }
+  .student-card-name { font-family: 'Special Elite', cursive; font-size: 1.25rem; color: var(--ink); }
+  .student-card-desc { font-size: 0.95rem; color: #5a4020; margin-top: 0.3rem; line-height: 1.4; }
+  .card-arrow { font-size: 1.3rem; color: var(--red); flex-shrink: 0; }
+  .student-card.completed .card-arrow { color: var(--muted); }
+  .completed-badge { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.3rem; }
+
+  /* ── SECTION DIVIDER ── */
+  .section-divider { display: flex; align-items: center; gap: 0.8rem; margin: 1.2rem 0 0.8rem; }
+  .section-divider span { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; white-space: nowrap; }
+  .section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* ── STATES ── */
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); font-size: 0.9rem; border: 1px dashed var(--border); letter-spacing: 0.05em; }
+  .loading { text-align: center; padding: 3rem; color: var(--muted); font-size: 0.9rem; letter-spacing: 0.1em; text-transform: uppercase; animation: blink 1.2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* ── TASK VIEW ── */
+  .task-view { display: none; }
+  .task-view.active { display: block; }
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--red); color: var(--paper); border: none;
+    padding: 0.6rem 1.2rem; font-size: 0.85rem; cursor: pointer;
+    margin-bottom: 1.5rem; transition: all 0.15s; letter-spacing: 0.1em; text-transform: uppercase;
+    font-family: 'Special Elite', cursive; box-shadow: 3px 3px 0 var(--red-dim);
+  }
+  .back-btn:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--red-dim); }
+
+  .dossier-card { background: var(--paper); border: 1px solid var(--paper-dark); box-shadow: 3px 3px 12px rgba(0,0,0,0.5); padding: 1.5rem; margin-bottom: 1.5rem; position: relative; }
+  .dossier-card::before { content: 'DOSSIER RISERVATO'; position: absolute; top: 0.6rem; right: 0.8rem; font-size: 0.65rem; color: var(--red); opacity: 0.5; letter-spacing: 0.15em; }
+  .dossier-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.8rem; }
+  .dossier-symbol { font-size: 2.2rem; line-height: 1; color: var(--red); flex-shrink: 0; }
+  .dossier-label { font-size: 0.8rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 0.2rem; }
+  .task-title { font-family: 'Special Elite', cursive; font-size: 2rem; color: var(--ink); line-height: 1.2; border-bottom: 2px solid var(--red); padding-bottom: 0.6rem; }
+  .task-desc { color: #3a2810; font-size: 1.05rem; line-height: 1.8; margin-top: 0.7rem; }
+
+  /* ── DISTANCE ── */
+  .compass-container { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+  .distance-display { background: var(--paper); border: 1px solid var(--paper-dark); box-shadow: 3px 3px 12px rgba(0,0,0,0.5); padding: 1.4rem 2rem; width: 100%; text-align: center; position: relative; }
+  .distance-display::before { content: ''; position: absolute; top: 6px; left: 6px; right: 6px; bottom: 6px; border: 1px solid var(--paper-dark); pointer-events: none; }
+  .distance-label { font-size: 0.72rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 0.3rem; }
+  .distance-value { font-family: 'Special Elite', cursive; font-size: 4.5rem; color: var(--red); line-height: 1; }
+  .distance-unit-label { font-size: 0.85rem; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-top: 0.2rem; }
+
+  /* ── ACCURACY ── */
+  .accuracy-bar-wrap { margin-top: 1rem; border-top: 1px solid var(--paper-dark); padding-top: 0.8rem; }
+  .accuracy-label { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--muted); margin-bottom: 0.4rem; letter-spacing: 0.08em; text-transform: uppercase; }
+  .accuracy-track { height: 5px; background: var(--paper-dark); overflow: hidden; }
+  .accuracy-fill { height: 100%; transition: width 0.5s ease, background-color 0.5s ease; width: 0%; }
+
+  /* ── ARROW ── */
+  .arrow-wrapper { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+  .arrow-ring { width: 240px; height: 240px; border-radius: 50%; background: var(--surface); border: 3px solid var(--border); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 6px var(--bg), 0 0 0 7px var(--border), 4px 4px 20px rgba(0,0,0,0.6); position: relative; }
+  .arrow-ring::before { content: ''; position: absolute; inset: 12px; border-radius: 50%; border: 1px dashed rgba(107,76,30,0.4); }
+  .arrow-rotate { transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; align-items: center; justify-content: center; }
+  .nav-arrow { width: 0; height: 0; border-left: 26px solid transparent; border-right: 26px solid transparent; border-bottom: 104px solid var(--red); filter: drop-shadow(0 0 10px rgba(192,21,42,0.5)); position: relative; }
+  .nav-arrow::after { content: ''; position: absolute; bottom: -104px; left: -17px; width: 0; height: 0; border-left: 17px solid transparent; border-right: 17px solid transparent; border-top: 52px solid rgba(192,21,42,0.2); }
+  .arrow-hint { font-size: 0.8rem; color: var(--muted); text-align: center; max-width: 240px; line-height: 1.6; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  /* ── MAP ── */
+  .map-container { background: var(--paper); border: 1px solid var(--paper-dark); box-shadow: 3px 3px 12px rgba(0,0,0,0.5); overflow: hidden; }
+  .map-address-bar { padding: 1rem 1.2rem; display: flex; align-items: center; gap: 0.9rem; border-bottom: 2px solid var(--red); background: var(--paper); }
+  .map-symbol-badge { font-size: 1.8rem; line-height: 1; color: var(--red); flex-shrink: 0; }
+  .map-address { font-family: 'Special Elite', cursive; font-size: 1.05rem; color: var(--ink); }
+  .map-coords { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; letter-spacing: 0.05em; }
+  #leaflet-map { width: 100%; height: 320px; }
+  .leaflet-tile { filter: sepia(60%) contrast(85%) brightness(105%) saturate(70%); }
+  .leaflet-container { background: #d4c99a; }
+
+  /* ── PERMISSION ── */
+  .permission-box { background: var(--paper); border: 1px solid var(--paper-dark); box-shadow: 3px 3px 12px rgba(0,0,0,0.5); padding: 2rem; text-align: center; }
+  .permission-icon { font-size: 2.5rem; margin-bottom: 0.8rem; }
+  .permission-box h3 { font-family: 'Special Elite', cursive; color: var(--ink); margin-bottom: 0.5rem; font-size: 1.2rem; }
+  .permission-box p { color: #5a4020; font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.6; }
+  .btn-start { background: var(--red); color: var(--paper); border: none; padding: 0.9rem 2rem; font-family: 'Special Elite', cursive; font-size: 1.05rem; cursor: pointer; box-shadow: 3px 3px 0 var(--red-dim); letter-spacing: 0.05em; transition: all 0.15s; }
+  .btn-start:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--red-dim); }
+
+  /* ── AUDIO ── */
+  .audio-player { margin-top: 1.2rem; border-top: 1px solid var(--paper-dark); padding-top: 1rem; }
+  .audio-label { font-size: 0.82rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 0.5rem; }
+  .audio-player audio { width: 100%; height: 40px; accent-color: var(--red); }
+
+  /* ── ARRIVED ── */
+  .arrived-banner { background: var(--paper); border: 3px solid var(--red); padding: 1.8rem 1.5rem 1.5rem; text-align: center; margin-top: 1.5rem; box-shadow: 4px 4px 0 var(--red-dim); position: relative; animation: pulse-red 2s infinite; }
+  .arrived-banner::before { content: '★  OBIETTIVO RAGGIUNTO  ★'; position: absolute; top: -0.65rem; left: 50%; transform: translateX(-50%); background: var(--red); color: var(--paper); font-size: 0.72rem; padding: 0.1rem 0.7rem; letter-spacing: 0.15em; white-space: nowrap; }
+  @keyframes pulse-red { 0%,100%{box-shadow:4px 4px 0 var(--red-dim)} 50%{box-shadow:4px 4px 0 var(--red-dim),0 0 24px rgba(192,21,42,0.3)} }
+  .arrived-icon { font-size: 2.8rem; color: var(--red); }
+  .arrived-title { font-family: 'Special Elite', cursive; font-size: 1.6rem; color: var(--red); margin-top: 0.5rem; }
+  .arrived-sub { font-size: 1rem; color: #5a4020; margin-top: 0.4rem; }
+
+  /* ── UNLOCKED NOTIFICATION ── */
+  .unlocked-notice { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid #6a9a40; padding: 0.9rem 1rem; margin-top: 1rem; font-size: 0.95rem; color: #6a9a40; letter-spacing: 0.05em; }
+
+  /* ── QUESTION BLOCK ── */
   /* ── LOGIN ── */
   .login-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 2rem; }
   .login-box { background: var(--surface); border: 2px solid var(--red); padding: 2.5rem 2rem; max-width: 360px; width: 100%; box-shadow: 6px 6px 0 var(--red-dim); position: relative; }
@@ -33,106 +203,33 @@
   .login-btn:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--red-dim); }
   .login-error { font-size: 0.8rem; color: var(--red); margin-top: 0.6rem; min-height: 1.2rem; letter-spacing: 0.05em; }
 
-  /* ── HEADER ── */
-  header { background: var(--red); position: relative; overflow: hidden; }
-  .header-rule { height: 4px; background: var(--bg); }
-  .header-rule-thin { height: 1px; background: rgba(0,0,0,0.3); margin-top: 2px; }
-  .header-inner { display: flex; flex-direction: column; align-items: center; padding: 1rem 1rem 0.8rem; position: relative; z-index: 1; }
-  .header-eyebrow { font-size: 0.75rem; letter-spacing: 0.25em; color: rgba(240,230,200,0.6); text-transform: uppercase; margin-bottom: 0.2rem; }
-  .header-title { font-family: 'Special Elite', cursive; font-size: 1.8rem; color: var(--paper); text-shadow: 2px 2px 0 rgba(0,0,0,0.4); }
-  .header-sub { font-size: 0.72rem; color: rgba(240,230,200,0.7); letter-spacing: 0.2em; margin-top: 0.2rem; text-transform: uppercase; }
-  header::after { content: '★'; position: absolute; right: -10px; top: -10px; font-size: 120px; color: rgba(0,0,0,0.12); line-height: 1; pointer-events: none; }
-
-  /* ── LAYOUT ── */
-  .layout { max-width: 800px; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: 280px 1fr; gap: 1.5rem; }
-  @media (max-width: 700px) { .layout { grid-template-columns: 1fr; } }
-
-  /* ── PANEL ── */
-  .panel { background: var(--surface); border: 1px solid var(--border-light); padding: 1.2rem; }
-  .panel-title { font-family: 'Special Elite', cursive; font-size: 0.95rem; color: var(--red); letter-spacing: 0.06em; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-light); }
-
-  /* ── GROUP SELECTOR ── */
-  .group-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-bottom: 1rem; }
-  .group-btn { padding: 0.6rem; border: 1px solid var(--border-light); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: 'Special Elite', cursive; font-size: 0.9rem; text-align: center; transition: all 0.15s; }
-  .group-btn:hover { border-color: var(--red); color: var(--text); }
-  .group-btn.active { background: var(--red); border-color: var(--red); color: var(--paper); }
-  .current-group { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 1rem; }
-
-  /* ── LOCATION LIST ── */
-  .loc-list { display: flex; flex-direction: column; gap: 0.4rem; }
-  .loc-item {
-    padding: 0.7rem 0.9rem; border: 1px solid var(--border-light);
-    border-left: 3px solid transparent;
-    display: flex; align-items: center; gap: 0.7rem;
-    cursor: pointer; transition: all 0.15s; background: var(--surface2);
-  }
-  .loc-item:hover:not(.locked) { border-left-color: var(--red); }
-  .loc-item.active-loc { border-left-color: var(--red); background: rgba(192,21,42,0.08); }
-  .loc-item.done { border-left-color: var(--green); opacity: 0.7; }
-  .loc-item.locked { opacity: 0.35; cursor: not-allowed; }
-  .loc-symbol { font-size: 1rem; width: 24px; text-align: center; flex-shrink: 0; }
-  .loc-name { font-family: 'Special Elite', cursive; font-size: 0.9rem; flex: 1; }
-  .loc-status { font-size: 0.7rem; flex-shrink: 0; }
-
-  /* ── DIVIDER ── */
-  .section-divider { display: flex; align-items: center; gap: 0.6rem; margin: 0.6rem 0 0.4rem; }
-  .section-divider span { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
-  .section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--border-light); }
-
-  /* ── DOSSIER ── */
-  .dossier { background: var(--paper); border: 1px solid var(--paper-dark); box-shadow: 3px 3px 12px rgba(0,0,0,0.5); padding: 1.5rem; position: relative; }
-  .dossier::before { content: 'DOSSIER RISERVATO'; position: absolute; top: 0.6rem; right: 0.8rem; font-size: 0.6rem; color: var(--red); opacity: 0.5; letter-spacing: 0.15em; }
-  .dossier-header { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.6rem; }
-  .dossier-symbol { font-size: 2rem; color: var(--red); flex-shrink: 0; }
-  .dossier-label { font-size: 0.65rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 0.15rem; }
-  .dossier-title { font-family: 'Special Elite', cursive; font-size: 1.6rem; color: var(--ink); line-height: 1.2; border-bottom: 2px solid var(--red); padding-bottom: 0.5rem; }
-  .dossier-desc { color: #3a2810; font-size: 0.95rem; line-height: 1.7; margin-top: 0.6rem; }
-
   /* ── SIM BUTTON ── */
-  .sim-section { margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--paper-dark); }
-  .sim-label { font-size: 0.65rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 0.6rem; }
-  .btn-arrive {
-    width: 100%; padding: 0.85rem; background: var(--red); color: var(--paper); border: none;
-    font-family: 'Special Elite', cursive; font-size: 1rem; cursor: pointer;
-    box-shadow: 3px 3px 0 var(--red-dim); transition: all 0.15s; letter-spacing: 0.05em;
-  }
-  .btn-arrive:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--red-dim); }
-  .btn-arrive:disabled { background: var(--muted); box-shadow: none; cursor: default; transform: none; }
-  .btn-reset { width: 100%; padding: 0.65rem; margin-top: 0.5rem; background: transparent; border: 1px solid var(--border-light); color: var(--muted); font-family: 'Courier Prime', monospace; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
-  .btn-reset:hover { border-color: var(--red); color: var(--red); }
-
-  /* ── ARRIVED BANNER ── */
-  .arrived-banner { background: var(--paper); border: 3px solid var(--red); padding: 1.5rem 1.2rem 1.2rem; text-align: center; margin-top: 1.2rem; box-shadow: 4px 4px 0 var(--red-dim); position: relative; }
-  .arrived-banner::before { content: '★  LOCATIE BEREIKT  ★'; position: absolute; top: -0.65rem; left: 50%; transform: translateX(-50%); background: var(--red); color: var(--paper); font-size: 0.65rem; padding: 0.1rem 0.7rem; letter-spacing: 0.15em; white-space: nowrap; }
-  .arrived-icon { font-size: 2.2rem; color: var(--red); }
-  .arrived-title { font-family: 'Special Elite', cursive; font-size: 1.3rem; color: var(--red); margin-top: 0.4rem; }
-
-  /* ── AUDIO ── */
-  .audio-player { margin-top: 1rem; border-top: 1px solid var(--paper-dark); padding-top: 0.8rem; }
-  .audio-label { font-size: 0.7rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 0.4rem; }
-  .audio-player audio { width: 100%; height: 36px; accent-color: var(--red); }
+  .sim-btn { width: 100%; padding: 0.85rem; margin-top: 1rem; background: var(--surface2); color: var(--muted); border: 1px dashed var(--border); font-family: 'Courier Prime', monospace; font-size: 0.9rem; cursor: pointer; letter-spacing: 0.06em; transition: all 0.2s; }
+  .sim-btn:hover { border-color: var(--red); color: var(--red); }
 
   /* ── QUESTION ── */
-  .question-block { margin-top: 1rem; border-top: 2px solid var(--red); padding-top: 0.9rem; text-align: left; }
-  .question-label { font-size: 0.65rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 0.4rem; }
-  .question-text { font-family: 'Special Elite', cursive; font-size: 1rem; color: var(--ink); margin-bottom: 0.7rem; line-height: 1.5; }
+  .question-block { margin-top: 1.2rem; border-top: 2px solid var(--red); padding-top: 1rem; text-align: left; }
+  .question-label { font-size: 0.7rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 0.5rem; }
+  .question-text { font-family: 'Special Elite', cursive; font-size: 1.1rem; color: var(--ink); margin-bottom: 0.9rem; line-height: 1.5; }
   .question-input-row { display: flex; gap: 0.5rem; }
-  .question-input { flex: 1; background: white; border: 2px solid var(--paper-dark); color: var(--ink); font-family: 'Courier Prime', monospace; font-size: 1rem; padding: 0.55rem 0.7rem; outline: none; transition: border-color 0.2s; }
+  .question-input {
+    flex: 1; background: white; border: 2px solid var(--paper-dark);
+    color: var(--ink); font-family: 'Courier Prime', monospace;
+    font-size: 1rem; padding: 0.6rem 0.8rem; outline: none;
+    transition: border-color 0.2s;
+  }
   .question-input:focus { border-color: var(--red); }
   .question-input:disabled { background: #f5f0e0; color: var(--muted); }
-  .question-submit { background: var(--red); color: var(--paper); border: none; padding: 0.55rem 1rem; font-size: 1.1rem; cursor: pointer; box-shadow: 2px 2px 0 var(--red-dim); transition: all 0.15s; flex-shrink: 0; }
+  .question-submit {
+    background: var(--red); color: var(--paper); border: none;
+    padding: 0.6rem 1.1rem; font-size: 1.1rem; cursor: pointer;
+    box-shadow: 2px 2px 0 var(--red-dim); transition: all 0.15s;
+    flex-shrink: 0;
+  }
   .question-submit:hover:not(:disabled) { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--red-dim); }
   .question-submit:disabled { background: var(--muted); box-shadow: none; cursor: default; }
-  .question-feedback { margin-top: 0.7rem; font-size: 0.9rem; line-height: 1.6; padding: 0.5rem 0.7rem; display: none; font-family: 'Courier Prime', monospace; color: var(--ink); border-left: 3px solid var(--muted); background: rgba(160,128,80,0.08); }
+  .question-feedback { margin-top: 0.8rem; font-size: 0.95rem; line-height: 1.6; padding: 0.6rem 0.8rem; display: none; font-family: 'Courier Prime', monospace; color: var(--ink); border-left: 3px solid var(--muted); background: rgba(160,128,80,0.08); }
   .question-feedback.show { display: block; }
-
-  /* ── UNLOCKED ── */
-  .unlocked-notice { background: var(--surface); border: 1px solid var(--border-light); border-left: 3px solid var(--green); padding: 0.8rem 1rem; margin-top: 0.8rem; font-size: 0.9rem; color: var(--green); letter-spacing: 0.05em; }
-
-  /* ── EMPTY / PLACEHOLDER ── */
-  .placeholder { text-align: center; padding: 3rem 1rem; color: var(--muted); font-size: 0.85rem; letter-spacing: 0.08em; border: 1px dashed var(--border-light); line-height: 1.8; }
-  .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--surface); border: 1px solid var(--red); border-left: 3px solid var(--red); color: var(--text); padding: 0.7rem 1.4rem; font-size: 0.85rem; z-index: 999; letter-spacing: 0.05em; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-  .toast.show { transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -148,48 +245,9 @@
   </div>
 </div>
 
-<header>
-  <div class="header-rule"></div>
-  <div class="header-rule-thin"></div>
-  <div class="header-inner">
-    <div class="header-eyebrow">Brigata Investigativa — Roma</div>
-    <div class="header-title">Operazione Moro</div>
-    <div class="header-sub">Testomgeving · Simulatie zonder GPS</div>
-  </div>
-  <div class="header-rule-thin"></div>
-  <div class="header-rule"></div>
-</header>
-
-<div class="layout">
-  <!-- Left: group + location list -->
-  <div>
-    <div class="panel" style="margin-bottom:1rem;">
-      <div class="panel-title">Groep selecteren</div>
-      <div class="group-grid" id="group-grid"></div>
-      <div class="current-group" id="current-group-label"></div>
-    </div>
-    <div class="panel">
-      <div class="panel-title">Locaties</div>
-      <div class="loc-list" id="loc-list">
-        <div class="placeholder">Selecteer een groep.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Right: dossier detail -->
-  <div id="detail-panel">
-    <div class="placeholder" style="border:1px dashed var(--border-light);padding:3rem 1rem;">
-      Selecteer een groep en klik op een locatie om te simuleren.
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
 <script>
   const CORRECT_HASH = '6ed18fc042aa11963191bb25592a4525338096c0d4c315eb4262c3b7459c1ccc';
   const SESSION_KEY = 'moro-beheer-auth';
-
   async function hashString(str) {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
     return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
@@ -209,13 +267,59 @@
   if (sessionStorage.getItem(SESSION_KEY) === '1') {
     document.getElementById('login-overlay').style.display = 'none';
   }
+</script>
 
-  function toast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast show';
-    setTimeout(() => t.className = 'toast', 2500);
-  }
+<header>
+  <div class="header-rule"></div>
+  <div class="header-rule-thin"></div>
+  <div class="header-inner">
+    <div class="header-eyebrow">Brigata Investigativa — Roma</div>
+    <div class="header-title">Operazione Moro</div>
+    <div class="header-sub">Testomgeving · Simulatie zonder GPS</div>
+    <div class="header-group" id="header-group"></div>
+  </div>
+  <div class="header-rule-thin"></div>
+  <div class="header-rule"></div>
+</header>
+
+<!-- Group picker overlay -->
+<div class="group-picker-overlay" id="group-picker-overlay">
+  <div class="group-picker-box">
+    <div class="group-picker-title">Selecteer uw groep</div>
+    <div class="group-picker-sub">Kies de groep die u door uw commandant werd toegewezen. Alle leden van dezelfde groep kiezen hetzelfde nummer.</div>
+    <div class="group-grid" id="group-grid"></div>
+    <button class="group-confirm" id="group-confirm" onclick="confirmGroup()">Bevestigen</button>
+  </div>
+</div>
+
+<div class="student-layout">
+  <div id="student-picker">
+    <div class="student-header">
+      <div class="classified-stamp">Riservato</div>
+      <h2>Selecteer uw missie</h2>
+      <p id="progress-label">Dossiers laden...</p>
+    </div>
+    <div class="assignment-grid" id="student-grid">
+      <div class="loading">▋ Dossiers laden...</div>
+    </div>
+  </div>
+
+  <div id="task-detail" class="task-view">
+    <button class="back-btn" onclick="backToList()">← Terug naar overzicht</button>
+    <div class="dossier-card">
+      <div class="dossier-label">Missie dossier</div>
+      <div class="dossier-header">
+        <div class="dossier-symbol" id="task-symbol"></div>
+        <div class="task-title" id="task-title"></div>
+      </div>
+      <div class="task-desc" id="task-desc"></div>
+    </div>
+    <div id="task-content"></div>
+  </div>
+</div>
+
+<script>
+  // Fullscreen uitgeschakeld — hindert scrollen bij toetsenbord
 </script>
 
 <script type="module">
@@ -235,148 +339,207 @@
   const db = getFirestore(app);
 
   const NUM_GROUPS = 10;
-  let assignments = [];
   let currentGroup = null;
-  let groupProgress = [];
-  let groupAnswers = {};
-  let activeId = null;
+  let groupProgress = [];   // array of completed assignment IDs
+  let groupAnswers = {};    // { assignmentId: { correct: bool } }
+  let assignments = [];
+  let activeAssignment = null;
+  let watchId = null, deviceHeading = null, currentLat = null, currentLng = null;
+  let gpsLat = null, gpsLng = null, gpsTimestamp = null;
+  let gpsSpeed = 0, gpsBearing = null, gpsAccuracy = null, interpFrame = null;
+  let leafletMap = null, playerMarker = null;
 
-  // ── Load assignments ──
-  const q = query(collection(db, 'assignments'), orderBy('order', 'asc'));
-  onSnapshot(q, snap => {
-    assignments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderLocList();
-    if (activeId) showDetail(activeId);
-  });
-
-  // ── Group buttons ──
+  // ── GROUP PICKER ──
   const groupGrid = document.getElementById('group-grid');
+  let selectedGroupTemp = null;
+
   for (let i = 1; i <= NUM_GROUPS; i++) {
     const btn = document.createElement('div');
     btn.className = 'group-btn';
     btn.textContent = `Groep ${i}`;
-    btn.onclick = () => selectGroup(`groep-${i}`, btn);
+    btn.dataset.group = i;
+    btn.onclick = () => {
+      document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedGroupTemp = `groep-${i}`;
+      document.getElementById('group-confirm').classList.add('active');
+    };
     groupGrid.appendChild(btn);
   }
 
-  async function selectGroup(groupId, btn) {
-    currentGroup = groupId;
-    activeId = null;
-    document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('current-group-label').textContent =
-      `Actief: ${groupId.replace('groep-', 'Groep ')}`;
-    document.getElementById('detail-panel').innerHTML =
-      `<div class="placeholder" style="border:1px dashed var(--border-light);padding:3rem 1rem;">Klik op een beschikbare locatie.</div>`;
+  // Check localStorage for existing group
+  const savedGroup = localStorage.getItem('moro-group');
+  if (savedGroup) {
+    currentGroup = savedGroup;
+    document.getElementById('group-picker-overlay').style.display = 'none';
+    initGroup();
+  }
 
-    // Listen to group progress
+  window.confirmGroup = function() {
+    if (!selectedGroupTemp) return;
+    currentGroup = selectedGroupTemp;
+    localStorage.setItem('moro-group', currentGroup);
+    document.getElementById('group-picker-overlay').style.display = 'none';
+    initGroup();
+  };
+
+  function groupLabel(g) {
+    return g.replace('groep-', 'Groep ');
+  }
+
+  async function initGroup() {
+    document.getElementById('header-group').textContent = groupLabel(currentGroup);
+
+    // Start listeners immediately — don't block on group doc creation
     const groupRef = doc(db, 'groups', currentGroup);
+
+    // Listen to assignments first
+    const q = query(collection(db, 'assignments'), orderBy('order', 'asc'));
+    onSnapshot(q, snapshot => {
+      assignments = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderStudentGrid();
+    }, err => {
+      document.getElementById('student-grid').innerHTML =
+        `<div class="empty-state">Fout bij laden: ${err.message}</div>`;
+    });
+
+    // Listen to group progress — create doc silently if missing
     onSnapshot(groupRef, docSnap => {
       if (!docSnap.exists()) {
         setDoc(groupRef, { completed: [], answers: {}, lastSeen: new Date().toISOString() }).catch(() => {});
-        groupProgress = []; groupAnswers = {};
+        groupProgress = [];
+        groupAnswers = {};
       } else {
         groupProgress = docSnap.data()?.completed || [];
         groupAnswers = docSnap.data()?.answers || {};
       }
-      renderLocList();
-      if (activeId) showDetail(activeId);
+      renderStudentGrid();
+    }, err => {
+      console.warn('Group progress unavailable:', err.message);
+      renderStudentGrid();
     });
   }
 
-  // ── Visibility logic (AND) ──
+  // ── VISIBILITY LOGIC ──
   function isVisible(a) {
-    if (a.visibleTo && a.visibleTo.length > 0 && !a.visibleTo.includes(currentGroup)) return false;
+    // Check group restriction
+    if (a.visibleTo && a.visibleTo.length > 0) {
+      if (!a.visibleTo.includes(currentGroup)) return false;
+    }
+    // Altijd zichtbaar als geen unlockedBy ingesteld
     if (!a.unlockedBy || a.unlockedBy.length === 0) return true;
-    return a.unlockedBy.every(id => groupProgress.includes(id));
+    // AND-logica: alle vereiste locaties moeten bezocht zijn
+    return a.unlockedBy.every(reqId => groupProgress.includes(reqId));
   }
-  function isCompleted(a) { return groupProgress.includes(a.id); }
 
-  // ── Render location list ──
-  function renderLocList() {
-    const list = document.getElementById('loc-list');
-    if (!currentGroup) { list.innerHTML = `<div class="placeholder">Selecteer een groep.</div>`; return; }
+  function isCompleted(a) {
+    return groupProgress.includes(a.id);
+  }
 
-    const relevant = assignments.filter(a =>
-      !a.visibleTo || a.visibleTo.length === 0 || a.visibleTo.includes(currentGroup)
-    );
-    if (!relevant.length) { list.innerHTML = `<div class="placeholder">Geen locaties voor deze groep.</div>`; return; }
+  // ── RENDER GRID ──
+  function renderStudentGrid() {
+    const grid = document.getElementById('student-grid');
+    if (!assignments.length) {
+      grid.innerHTML = `<div class="loading">▋ Dossiers laden...</div>`;
+      return;
+    }
 
-    const active = relevant.filter(a => isVisible(a) && !isCompleted(a));
-    const done = relevant.filter(a => isCompleted(a));
-    const locked = relevant.filter(a => !isVisible(a) && !isCompleted(a));
+    const visible = assignments.filter(isVisible);
+    const active = visible.filter(a => !isCompleted(a));
+    const done = visible.filter(a => isCompleted(a));
+    const total = visible.length;
+    const doneCount = done.length;
+
+    document.getElementById('progress-label').textContent =
+      `${doneCount} van ${total} locaties bezocht`;
 
     let html = '';
 
-    active.forEach(a => {
-      html += locItemHTML(a, 'active', a.id === activeId ? 'active-loc' : '');
+    if (active.length === 0 && done.length === 0) {
+      html = `<div class="empty-state">Geen dossiers beschikbaar.<br>Vraag uw commandant.</div>`;
+    }
+
+    html += active.map(a => cardHTML(a, false)).join('');
+
+    if (done.length > 0) {
+      html += `<div class="section-divider"><span>Afgewerkt</span></div>`;
+      html += done.map(a => cardHTML(a, true)).join('');
+    }
+
+    grid.innerHTML = html;
+  }
+
+  function cardHTML(a, completed) {
+    return `
+      <div class="student-card ${completed ? 'completed' : ''}" onclick="openTask('${a.id}')">
+        <div class="student-symbol">${a.symbol || '★'}</div>
+        <div class="student-card-info">
+          <div class="student-card-name">${a.name}</div>
+          ${a.desc && !completed ? `<div class="student-card-desc">${a.desc.substring(0,90)}${a.desc.length>90?'…':''}</div>` : ''}
+          ${completed ? `<div class="completed-badge">✓ Bezocht</div>` : ''}
+        </div>
+        <div class="card-arrow">${completed ? '✓' : '›'}</div>
+      </div>`;
+  }
+
+  // ── OPEN TASK ── (defined further down after renderMd)
+
+  window.backToList = function() {
+    stopTracking();
+    if (leafletMap) { leafletMap.remove(); leafletMap = null; playerMarker = null; }
+    document.getElementById('student-picker').style.display = '';
+    document.getElementById('task-detail').classList.remove('active');
+    activeAssignment = null;
+  };
+
+  // ── MARK COMPLETED ──
+  async function markCompleted(assignmentId) {
+    if (groupProgress.includes(assignmentId)) return;
+    const groupRef = doc(db, 'groups', currentGroup);
+    await updateDoc(groupRef, {
+      completed: arrayUnion(assignmentId),
+      lastSeen: new Date().toISOString()
     });
-
-    if (done.length) {
-      html += `<div class="section-divider"><span>Bezocht</span></div>`;
-      done.forEach(a => { html += locItemHTML(a, 'done', a.id === activeId ? 'active-loc' : ''); });
-    }
-
-    if (locked.length) {
-      html += `<div class="section-divider"><span>Vergrendeld</span></div>`;
-      locked.forEach(a => { html += locItemHTML(a, 'locked', ''); });
-    }
-
-    list.innerHTML = html;
   }
 
-  function locItemHTML(a, state, extra) {
-    const onclick = state !== 'locked' ? `onclick="window._showDetail('${a.id}')"` : '';
-    const status = state === 'done' ? '✓' : state === 'locked' ? '🔒' : '›';
-    return `<div class="loc-item ${state} ${extra}" ${onclick}>
-      <div class="loc-symbol">${a.symbol || '★'}</div>
-      <div class="loc-name">${a.name}</div>
-      <div class="loc-status">${status}</div>
-    </div>`;
-  }
+  function questionBlockHTML(a) {
+    if (!a.question) return '';
+    const answerStatus = groupAnswers[a.id]; // { correct: bool } or undefined
 
-  window._showDetail = function(id) { showDetail(id); };
-
-  function showDetail(id) {
-    const a = assignments.find(x => x.id === id);
-    if (!a || !currentGroup) return;
-    activeId = id;
-    renderLocList(); // update active highlight
-
-    const done = isCompleted(a);
-    const answerStatus = groupAnswers[a.id];
-
-    let questionHTML = '';
-    if (a.question) {
-      if (answerStatus !== undefined) {
-        const feedbackText = answerStatus.correct ? (a.answerText || '✓ Correct.') : 'Ga naar de volgende locatie.';
-        questionHTML = `
-          <div class="question-block">
-            <div class="question-label">▋ Vraag</div>
-            <div class="question-text">${a.question}</div>
-            <div class="question-feedback show">${feedbackText}</div>
-          </div>`;
-      } else if (done) {
-        questionHTML = `
-          <div class="question-block">
-            <div class="question-label">▋ Vraag</div>
-            <div class="question-text">${a.question}</div>
-            <div class="question-input-row">
-              <input type="text" class="question-input" id="answer-input-${a.id}" placeholder="Uw antwoord..." onkeydown="if(event.key==='Enter') window._checkAnswer('${a.id}')">
-              <button class="question-submit" onclick="window._checkAnswer('${a.id}')">→</button>
-            </div>
-            <div class="question-feedback" id="answer-feedback-${a.id}"></div>
-          </div>`;
-      }
+    if (answerStatus !== undefined) {
+      // Antwoord al gegeven — toon resultaat, geen invoer meer
+      const feedbackText = answerStatus.correct
+        ? (a.answerText || '✓ Correct.')
+        : 'Ga naar de volgende locatie.';
+      return `
+        <div class="question-block">
+          <div class="question-label">▋ Vraag</div>
+          <div class="question-text">${a.question}</div>
+          <div class="question-feedback show">${feedbackText}</div>
+        </div>`;
     }
 
-    // Which assignments does this unlock?
+    // Nog niet beantwoord — toon invoerveld
+    return `
+      <div class="question-block" id="question-block-${a.id}">
+        <div class="question-label">▋ Vraag</div>
+        <div class="question-text">${a.question}</div>
+        <div class="question-input-row">
+          <input type="text" class="question-input" id="answer-input-${a.id}"
+            placeholder="Uw antwoord..."
+            onkeydown="if(event.key==='Enter') checkAnswer('${a.id}')">
+          <button class="question-submit" onclick="checkAnswer('${a.id}')">→</button>
+        </div>
+        <div class="question-feedback" id="answer-feedback-${a.id}"></div>
+      </div>`;
+  }
+
+  function arrivedHTML(a, showUnlockNotice = false) {
     const unlocks = assignments.filter(x => (x.unlockedBy || []).includes(a.id));
-    const unlockNotice = done && unlocks.length > 0
-      ? `<div class="unlocked-notice">✦ Vrijgegeven na bezoek: ${unlocks.map(x => x.name).join(', ')}</div>`
+    const unlockNotice = showUnlockNotice && unlocks.length > 0
+      ? `<div class="unlocked-notice">✦ Nieuw vrijgegeven: ${unlocks.map(x => x.name).join(', ')}</div>`
       : '';
-
-    const arrivedSection = done ? `
+    return `
       <div class="arrived-banner">
         <div class="arrived-icon">${a.symbol || '★'}</div>
         <div class="arrived-title">Locatie bereikt</div>
@@ -384,64 +547,31 @@
           <div class="audio-label">▶ Intercepted transmission</div>
           <audio controls src="${a.audio}"></audio>
         </div>` : ''}
-        ${questionHTML}
+        ${questionBlockHTML(a)}
       </div>
-      ${unlockNotice}` : '';
-
-    const simSection = !done ? `
-      <div class="sim-section">
-        <div class="sim-label">Simulatie</div>
-        <button class="btn-arrive" onclick="window._simulateArrive('${a.id}')">
-          Simuleer aankomst op deze locatie
-        </button>
-      </div>` : `
-      <div class="sim-section">
-        <div class="sim-label">Simulatie</div>
-        <button class="btn-arrive" disabled>✓ Locatie reeds bezocht</button>
-        <button class="btn-reset" onclick="window._resetLoc('${a.id}', '${a.name}')">Voortgang van deze locatie wissen</button>
-      </div>`;
-
-    document.getElementById('detail-panel').innerHTML = `
-      <div class="dossier">
-        <div class="dossier-label">Missie dossier</div>
-        <div class="dossier-header">
-          <div class="dossier-symbol">${a.symbol || '★'}</div>
-          <div class="dossier-title">${a.name}</div>
-        </div>
-        <div class="dossier-desc">${a.desc || ''}</div>
-        ${simSection}
-      </div>
-      ${arrivedSection}`;
+      ${unlockNotice}`;
   }
 
-  // ── Simulate arrival ──
-  window._simulateArrive = async function(id) {
-    if (!currentGroup) return;
-    const groupRef = doc(db, 'groups', currentGroup);
-    await updateDoc(groupRef, {
-      completed: arrayUnion(id),
-      lastSeen: new Date().toISOString()
-    }).catch(async () => {
-      // Doc may not exist yet
-      await setDoc(groupRef, { completed: [id], answers: {}, lastSeen: new Date().toISOString() });
-    });
-    toast('Aankomst gesimuleerd ✓');
-  };
-
-  // ── Check answer ──
-  window._checkAnswer = async function(assignmentId) {
+  window.checkAnswer = async function(assignmentId) {
     const a = assignments.find(x => x.id === assignmentId);
-    if (!a || groupAnswers[assignmentId] !== undefined) return;
+    if (!a) return;
+    // Als al beantwoord (door ander toestel in zelfde groep), negeer
+    if (groupAnswers[assignmentId] !== undefined) return;
+
     const input = document.getElementById(`answer-input-${assignmentId}`);
     const feedback = document.getElementById(`answer-feedback-${assignmentId}`);
-    const btn = document.querySelector(`#answer-input-${assignmentId} ~ button`) ||
-                input?.parentElement?.querySelector('button');
+    const btn = document.querySelector(`#question-block-${assignmentId} .question-submit`);
     if (!input || !feedback) return;
+
+    // Blokkeer meteen — voor alle toestellen in de groep
     input.disabled = true;
     if (btn) btn.disabled = true;
+
     const given = input.value.trim().toLowerCase();
     const correct = (a.answer || '').trim().toLowerCase();
     const isCorrect = given === correct;
+
+    // Sla op in Firestore — zichtbaar voor alle toestellen in de groep
     try {
       const groupRef = doc(db, 'groups', currentGroup);
       await updateDoc(groupRef, {
@@ -449,25 +579,309 @@
         lastSeen: new Date().toISOString()
       });
     } catch (e) { console.warn('Answer save failed:', e); }
+
+    // Toon feedback lokaal (Firestore onSnapshot update volgt ook)
     feedback.className = 'question-feedback show';
-    feedback.innerHTML = isCorrect ? (a.answerText || '✓ Correct.') : 'Ga naar de volgende locatie.';
+    feedback.innerHTML = isCorrect
+      ? (a.answerText || '✓ Correct.')
+      : 'Ga naar de volgende locatie.';
   };
 
-  // ── Reset single location ──
-  window._resetLoc = async function(id, name) {
-    if (!confirm(`Voortgang van "${name}" wissen voor ${currentGroup.replace('groep-', 'Groep ')}?`)) return;
-    try {
-      const groupRef = doc(db, 'groups', currentGroup);
-      const snap = await getDoc(groupRef);
-      if (!snap.exists()) return;
-      const completed = (snap.data().completed || []).filter(x => x !== id);
-      const answers = snap.data().answers || {};
-      delete answers[id];
-      await updateDoc(groupRef, { completed, answers });
-      activeId = id;
-      toast(`"${name}" gewist`);
-    } catch (e) { toast('Fout: ' + e.message); }
+  // ── MAP MODE ──
+  function renderMapMode() {
+    const a = activeAssignment;
+    const alreadyDone = isCompleted(a);
+
+    document.getElementById('task-content').innerHTML = `
+      <div class="map-container">
+        <div class="map-address-bar">
+          <div class="map-symbol-badge">${a.symbol || '📍'}</div>
+          <div>
+            <div class="map-address">${a.address || 'Locatie onbekend'}</div>
+            <div class="map-coords">${a.lat.toFixed(5)}° N · ${a.lng.toFixed(5)}° E</div>
+          </div>
+        </div>
+        <div id="leaflet-map"></div>
+      </div>
+      <div id="map-arrived-wrap">${alreadyDone ? arrivedHTML(a) : ''}</div>
+      <button class="sim-btn" ${alreadyDone ? 'style="display:none"' : ''} id="sim-btn-map" onclick="simulateArrive()">▶ Simuleer aankomst op deze locatie</button>`;
+
+    leafletMap = L.map('leaflet-map', { zoomControl: true, attributionControl: false }).setView([a.lat, a.lng], 17);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(leafletMap);
+
+    const symbol = a.symbol || '📍';
+    const targetIcon = L.divIcon({
+      className: '',
+      html: `<div style="font-size:2rem;line-height:1;filter:drop-shadow(1px 2px 2px rgba(0,0,0,0.5));transform:translateY(-50%);">${symbol}</div>`,
+      iconSize: [36, 36], iconAnchor: [18, 36],
+    });
+    L.marker([a.lat, a.lng], { icon: targetIcon }).addTo(leafletMap);
+
+    if (navigator.geolocation) {
+      const playerIcon = L.divIcon({
+        className: '',
+        html: `<div style="width:18px;height:18px;background:#c0152a;border:3px solid #f0e6c8;border-radius:50%;box-shadow:0 0 0 4px rgba(192,21,42,0.3),0 2px 6px rgba(0,0,0,0.4);"></div>`,
+        iconSize: [18, 18], iconAnchor: [9, 9],
+      });
+
+      let mapArrived = false;
+      watchId = navigator.geolocation.watchPosition(pos => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        if (!playerMarker) playerMarker = L.marker([lat, lng], { icon: playerIcon }).addTo(leafletMap);
+        else playerMarker.setLatLng([lat, lng]);
+
+        if (!mapArrived) {
+          const dist = haversine(lat, lng, a.lat, a.lng);
+          if (dist <= a.radius) {
+            mapArrived = true;
+            markCompleted(a.id);
+            const wrap = document.getElementById('map-arrived-wrap');
+            if (wrap) wrap.innerHTML = arrivedHTML(a, true);
+          }
+        }
+      }, null, { enableHighAccuracy: true, maximumAge: 0 });
+    }
+  }
+
+  // ── COMPASS MODE ──
+  function renderCompassMode() {
+    const a = activeAssignment;
+    const alreadyDone = isCompleted(a);
+
+    // Als al bezocht: toon meteen de banner, geen kompas
+    if (alreadyDone) {
+      document.getElementById('task-content').innerHTML =
+        `<div id="arrived-wrap">${arrivedHTML(a)}</div>`;
+      return;
+    }
+
+    document.getElementById('task-content').innerHTML = `
+      <div class="compass-container" id="compass-ui">
+        <div class="distance-display">
+          <div class="distance-label">Testmodus</div>
+          <div class="distance-value" style="font-size:2.5rem;">—</div>
+          <div class="distance-unit-label">GPS uitgeschakeld</div>
+        </div>
+        <div class="arrow-wrapper">
+          <div class="arrow-ring">
+            <div class="arrow-rotate" id="arrow-rotate"><div class="nav-arrow"></div></div>
+          </div>
+          <div class="arrow-hint" id="compass-status">▋ Geen GPS in testmodus</div>
+          <div id="compass-debug" style="font-size:0.75rem;color:var(--muted);text-align:center;letter-spacing:0.05em;line-height:1.8;margin-top:0.3rem;"></div>
+        </div>
+        <button class="sim-btn" onclick="simulateArrive()">▶ Simuleer aankomst op deze locatie</button>
+        <div id="arrived-wrap"></div>
+      </div>`;
+  }
+
+  window.startCompass = function() {
+    document.getElementById('perm-box').style.display = 'none';
+    document.getElementById('compass-ui').style.display = 'flex';
+    startTracking();
   };
+
+  // ── GPS ──
+  function deg2rad(d) { return d * Math.PI / 180; }
+  function haversine(lat1, lng1, lat2, lng2) {
+    const R = 6371000, dLat = deg2rad(lat2-lat1), dLng = deg2rad(lng2-lng1);
+    const a = Math.sin(dLat/2)**2 + Math.cos(deg2rad(lat1))*Math.cos(deg2rad(lat2))*Math.sin(dLng/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+  function bearing(lat1, lng1, lat2, lng2) {
+    const dLng = deg2rad(lng2-lng1);
+    const y = Math.sin(dLng)*Math.cos(deg2rad(lat2));
+    const x = Math.cos(deg2rad(lat1))*Math.sin(deg2rad(lat2)) - Math.sin(deg2rad(lat1))*Math.cos(deg2rad(lat2))*Math.cos(dLng);
+    return (Math.atan2(y,x)*180/Math.PI+360)%360;
+  }
+
+  function startTracking() {
+    if (!navigator.geolocation) return;
+    watchId = navigator.geolocation.watchPosition(pos => {
+      const newLat = pos.coords.latitude, newLng = pos.coords.longitude;
+      gpsAccuracy = pos.coords.accuracy;
+      if (gpsLat !== null) {
+        const dt = (pos.timestamp - gpsTimestamp) / 1000;
+        if (dt > 0) {
+          const d = haversine(gpsLat, gpsLng, newLat, newLng);
+          gpsSpeed = d / dt;
+          if (d > 2) gpsBearing = bearing(gpsLat, gpsLng, newLat, newLng);
+        }
+      }
+      // Gebruik pos.coords.speed enkel voor interpolatie — NIET als kompasrichting
+      if (pos.coords.speed !== null && !isNaN(pos.coords.speed)) {
+        gpsSpeed = pos.coords.speed;
+      }
+      gpsLat = newLat; gpsLng = newLng; gpsTimestamp = pos.timestamp;
+      // Altijd de echte GPS-positie tonen — interpolatie is enkel een bonus bij beweging
+      currentLat = gpsLat; currentLng = gpsLng;
+      updateAccuracyUI(); updateCompassUI();
+      startInterpolation();
+    }, err => {
+      const s = document.getElementById('compass-status');
+      if (s) { s.textContent = '✗ GPS fout: ' + err.message; s.style.color = '#c0152a'; }
+    }, { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 });
+
+    // ── Kompas heading met smoothing ──
+    let smoothedHeading = null;
+    const ALPHA = 0.15; // smoothingfactor: lager = vloeibaarder maar trager
+
+    function updateHeading(raw) {
+      if (raw === null || raw === undefined || isNaN(raw)) return;
+      if (smoothedHeading === null) {
+        smoothedHeading = raw;
+      } else {
+        // Shortest-path interpolation over 360°
+        let diff = raw - smoothedHeading;
+        if (diff > 180) diff -= 360;
+        if (diff < -180) diff += 360;
+        smoothedHeading = (smoothedHeading + ALPHA * diff + 360) % 360;
+      }
+      deviceHeading = smoothedHeading;
+      updateCompassUI();
+    }
+
+    let usingAbsolute = false;
+
+    const absoluteHandler = e => {
+      if (typeof e.alpha !== 'number') return;
+      usingAbsolute = true;
+      updateHeading((360 - e.alpha) % 360);
+    };
+
+    const relativeHandler = e => {
+      // Only use relative if no absolute events are coming in
+      if (usingAbsolute) return;
+      if (typeof e.webkitCompassHeading === 'number') {
+        updateHeading(e.webkitCompassHeading); // iOS
+      } else if (typeof e.alpha === 'number') {
+        updateHeading((360 - e.alpha) % 360);  // Android fallback
+      }
+    };
+
+    if (typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+      // iOS
+      DeviceOrientationEvent.requestPermission()
+        .then(s => {
+          if (s === 'granted') window.addEventListener('deviceorientation', relativeHandler, true);
+        })
+        .catch(() => {});
+    } else {
+      // Android: probeer absolute eerst, val terug op relatief
+      window.addEventListener('deviceorientationabsolute', absoluteHandler, true);
+      window.addEventListener('deviceorientation', relativeHandler, true);
+    }
+  }
+
+  function startInterpolation() {
+    if (interpFrame) cancelAnimationFrame(interpFrame);
+    // Alleen interpoleren bij duidelijke beweging (> 1 m/s = ~3.6 km/h)
+    if (!gpsLat || !gpsBearing || gpsSpeed < 1.0) return;
+    const step = () => {
+      const age = (Date.now() - gpsTimestamp) / 1000;
+      // Stop na 3 seconden of als er een nieuwe GPS-fix binnen moet komen
+      if (age > 3) return;
+      const R = 6371000, d = gpsSpeed * age;
+      const bR = deg2rad(gpsBearing), laR = deg2rad(gpsLat), loR = deg2rad(gpsLng);
+      const nlaR = Math.asin(Math.sin(laR)*Math.cos(d/R) + Math.cos(laR)*Math.sin(d/R)*Math.cos(bR));
+      const nloR = loR + Math.atan2(Math.sin(bR)*Math.sin(d/R)*Math.cos(laR), Math.cos(d/R)-Math.sin(laR)*Math.sin(nlaR));
+      currentLat = nlaR * 180/Math.PI; currentLng = nloR * 180/Math.PI;
+      updateCompassUI();
+      interpFrame = requestAnimationFrame(step);
+    };
+    interpFrame = requestAnimationFrame(step);
+  }
+
+  function updateAccuracyUI() {
+    const wrap = document.getElementById('accuracy-wrap');
+    const fill = document.getElementById('accuracy-fill');
+    const text = document.getElementById('accuracy-text');
+    if (!wrap || !fill || !text || gpsAccuracy === null) return;
+    wrap.style.display = 'block';
+    const pct = Math.max(0, Math.min(100, 100 - ((gpsAccuracy - 3) / 47) * 100));
+    fill.style.width = pct + '%';
+    if (gpsAccuracy <= 8) { fill.style.backgroundColor = '#3a7a30'; text.textContent = `Uitstekend (±${Math.round(gpsAccuracy)}m)`; text.style.color = '#3a7a30'; }
+    else if (gpsAccuracy <= 20) { fill.style.backgroundColor = '#a07020'; text.textContent = `Redelijk (±${Math.round(gpsAccuracy)}m)`; text.style.color = '#a07020'; }
+    else { fill.style.backgroundColor = '#c0152a'; text.textContent = `Zwak (±${Math.round(gpsAccuracy)}m)`; text.style.color = '#c0152a'; }
+  }
+
+  function stopTracking() {
+    if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+    if (interpFrame) { cancelAnimationFrame(interpFrame); interpFrame = null; }
+    deviceHeading = null; currentLat = null; currentLng = null;
+    gpsLat = null; gpsLng = null; gpsTimestamp = null; gpsSpeed = 0; gpsBearing = null;
+  }
+
+  // ── MARKDOWN RENDERER ──
+  function renderMd(md) {
+    return md
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/^### (.+)$/gm, '<h3 style="font-family:\'Special Elite\',cursive;color:var(--red);margin:1rem 0 0.4rem;font-size:1rem;">$1</h3>')
+      .replace(/^## (.+)$/gm,  '<h2 style="font-family:\'Special Elite\',cursive;color:var(--ink);margin:1rem 0 0.4rem;font-size:1.2rem;border-bottom:1px solid var(--paper-dark);padding-bottom:0.3rem;">$1</h2>')
+      .replace(/^# (.+)$/gm,   '<h1 style="font-family:\'Special Elite\',cursive;color:var(--ink);margin:0.5rem 0;font-size:1.4rem;">$1</h1>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g,     '<em>$1</em>')
+      .replace(/^- (.+)$/gm,    '<li style="margin-left:1.2rem;margin-bottom:0.3rem;">$1</li>')
+      .replace(/(<li[^>]*>.*?<\/li>\n?)+/gs, m => `<ul style="margin:0.5rem 0;">${m}</ul>`)
+      .replace(/\n\n+/g, '</p><p style="margin:0.6rem 0;">')
+      .replace(/^/, '<p style="margin:0;">') + '</p>';
+  }
+
+  // ── OPEN TASK ──
+  let compassArrived = false;
+  window.openTask = function(id) {
+    compassArrived = false;
+    activeAssignment = assignments.find(a => a.id === id);
+    if (!activeAssignment) return;
+    const a = activeAssignment;
+    document.getElementById('student-picker').style.display = 'none';
+    document.getElementById('task-detail').classList.add('active');
+    document.getElementById('task-symbol').textContent = a.symbol || '';
+    document.getElementById('task-title').textContent = a.name;
+
+    const descEl = document.getElementById('task-desc');
+    if (a.descMd) {
+      descEl.innerHTML = '<span style="color:var(--muted);font-size:0.8rem;letter-spacing:0.05em;">Dossier laden...</span>';
+      fetch(a.descMd)
+        .then(r => r.ok ? r.text() : Promise.reject(r.status))
+        .then(md => { descEl.innerHTML = renderMd(md); })
+        .catch(() => { descEl.textContent = a.desc || ''; });
+    } else {
+      descEl.textContent = a.desc || '';
+    }
+
+    if (a.mode === 'map') renderMapMode();
+    else renderCompassMode();
+  };
+
+  // ── SIMULATIE (alleen in test.html) ──
+  window.simulateArrive = async function() {
+    if (!activeAssignment) return;
+    const a = activeAssignment;
+    await markCompleted(a.id);
+
+    // Kompas: verberg kompas en knop, toon banner
+    const compassUI = document.getElementById('compass-ui');
+    if (compassUI) {
+      const distDisplay = compassUI.querySelector('.distance-display');
+      if (distDisplay) distDisplay.style.display = 'none';
+      const arrowWrapper = compassUI.querySelector('.arrow-wrapper');
+      if (arrowWrapper) arrowWrapper.style.display = 'none';
+      const simBtn = compassUI.querySelector('.sim-btn');
+      if (simBtn) simBtn.style.display = 'none';
+      const arrivedWrap = document.getElementById('arrived-wrap');
+      if (arrivedWrap) arrivedWrap.innerHTML = arrivedHTML(a, true);
+    }
+
+    // Kaart: verberg knop, toon banner
+    const mapWrap = document.getElementById('map-arrived-wrap');
+    const simBtnMap = document.getElementById('sim-btn-map');
+    if (mapWrap) mapWrap.innerHTML = arrivedHTML(a, true);
+    if (simBtnMap) simBtnMap.style.display = 'none';
+  };
+
+  // ── COMPASS UI UPDATE (no-op in test — geen GPS) ──
+  function updateCompassUI() { /* GPS uitgeschakeld in testmodus */ }
 </script>
 </body>
 </html>
