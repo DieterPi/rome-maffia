@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Operazione Moro — Roma 1978</title>
+<title>Operazione Moro — Test</title>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -191,6 +191,23 @@
   .unlocked-notice { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid #6a9a40; padding: 0.9rem 1rem; margin-top: 1rem; font-size: 0.95rem; color: #6a9a40; letter-spacing: 0.05em; }
 
   /* ── QUESTION BLOCK ── */
+  /* ── LOGIN ── */
+  .login-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 2rem; }
+  .login-box { background: var(--surface); border: 2px solid var(--red); padding: 2.5rem 2rem; max-width: 360px; width: 100%; box-shadow: 6px 6px 0 var(--red-dim); position: relative; }
+  .login-box::before { content: 'ACCESSO RISERVATO'; position: absolute; top: -0.7rem; left: 1rem; background: var(--red); color: var(--paper); font-size: 0.6rem; padding: 0.15rem 0.6rem; letter-spacing: 0.2em; }
+  .login-title { font-family: 'Special Elite', cursive; font-size: 1.4rem; color: var(--text); margin-bottom: 0.4rem; }
+  .login-sub { font-size: 0.78rem; color: var(--muted); margin-bottom: 1.5rem; letter-spacing: 0.04em; line-height: 1.6; }
+  .login-input { width: 100%; background: var(--surface2); border: 1px solid var(--border-light); color: var(--text); font-family: 'Courier Prime', monospace; font-size: 1.1rem; padding: 0.7rem 0.9rem; outline: none; letter-spacing: 0.15em; margin-bottom: 0.8rem; transition: border-color 0.2s; }
+  .login-input:focus { border-color: var(--red); }
+  .login-btn { width: 100%; padding: 0.85rem; background: var(--red); color: var(--paper); border: none; font-family: 'Special Elite', cursive; font-size: 1rem; cursor: pointer; box-shadow: 3px 3px 0 var(--red-dim); transition: all 0.15s; letter-spacing: 0.05em; }
+  .login-btn:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--red-dim); }
+  .login-error { font-size: 0.8rem; color: var(--red); margin-top: 0.6rem; min-height: 1.2rem; letter-spacing: 0.05em; }
+
+  /* ── SIM BUTTON ── */
+  .sim-btn { width: 100%; padding: 0.85rem; margin-top: 1rem; background: var(--surface2); color: var(--muted); border: 1px dashed var(--border); font-family: 'Courier Prime', monospace; font-size: 0.9rem; cursor: pointer; letter-spacing: 0.06em; transition: all 0.2s; }
+  .sim-btn:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── QUESTION ── */
   .question-block { margin-top: 1.2rem; border-top: 2px solid var(--red); padding-top: 1rem; text-align: left; }
   .question-label { font-size: 0.7rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 0.5rem; }
   .question-text { font-family: 'Special Elite', cursive; font-size: 1.1rem; color: var(--ink); margin-bottom: 0.9rem; line-height: 1.5; }
@@ -217,13 +234,48 @@
 </head>
 <body>
 
+<!-- Login overlay -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <div class="login-title">Testomgeving</div>
+    <div class="login-sub">Voer de toegangscode in om verder te gaan.</div>
+    <input type="password" class="login-input" id="login-input" placeholder="••••••••" onkeydown="if(event.key==='Enter') submitLogin()">
+    <button class="login-btn" onclick="submitLogin()">Toegang verkrijgen</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<script>
+  const CORRECT_HASH = '6ed18fc042aa11963191bb25592a4525338096c0d4c315eb4262c3b7459c1ccc';
+  const SESSION_KEY = 'moro-beheer-auth';
+  async function hashString(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+  async function submitLogin() {
+    const val = document.getElementById('login-input').value;
+    const hash = await hashString(val);
+    if (hash === CORRECT_HASH) {
+      sessionStorage.setItem(SESSION_KEY, '1');
+      document.getElementById('login-overlay').style.display = 'none';
+    } else {
+      document.getElementById('login-error').textContent = 'Toegangscode onjuist.';
+      document.getElementById('login-input').value = '';
+      document.getElementById('login-input').focus();
+    }
+  }
+  if (sessionStorage.getItem(SESSION_KEY) === '1') {
+    document.getElementById('login-overlay').style.display = 'none';
+  }
+</script>
+
 <header>
   <div class="header-rule"></div>
   <div class="header-rule-thin"></div>
   <div class="header-inner">
     <div class="header-eyebrow">Brigata Investigativa — Roma</div>
     <div class="header-title">Operazione Moro</div>
-    <div class="header-sub">Documenti riservati · 1978</div>
+    <div class="header-sub">Testomgeving · Simulatie zonder GPS</div>
     <div class="header-group" id="header-group"></div>
   </div>
   <div class="header-rule-thin"></div>
@@ -551,7 +603,8 @@
         </div>
         <div id="leaflet-map"></div>
       </div>
-      <div id="map-arrived-wrap">${alreadyDone ? arrivedHTML(a) : ''}</div>`;
+      <div id="map-arrived-wrap">${alreadyDone ? arrivedHTML(a) : ''}</div>
+      <button class="sim-btn" ${alreadyDone ? 'style="display:none"' : ''} id="sim-btn-map" onclick="simulateArrive()">▶ Simuleer aankomst op deze locatie</button>`;
 
     leafletMap = L.map('leaflet-map', { zoomControl: true, attributionControl: false }).setView([a.lat, a.lng], 17);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(leafletMap);
@@ -603,29 +656,20 @@
     }
 
     document.getElementById('task-content').innerHTML = `
-      <div class="permission-box" id="perm-box">
-        <div class="permission-icon">🧭</div>
-        <h3>Locatietoegang vereist</h3>
-        <p>Om de afstand te bepalen heeft uw apparaat toegang nodig tot de GPS-locatie.</p>
-        <button class="btn-start" onclick="startCompass()">Activeer navigatie</button>
-      </div>
-      <div class="compass-container" id="compass-ui" style="display:none;">
+      <div class="compass-container" id="compass-ui">
         <div class="distance-display">
-          <div class="distance-label">Afstand tot bewijsmateriaal</div>
-          <div class="distance-value" id="dist-val">—</div>
-          <div class="distance-unit-label" id="dist-unit">GPS verbinding zoeken...</div>
-          <div class="accuracy-bar-wrap" id="accuracy-wrap" style="display:none;">
-            <div class="accuracy-label"><span>Signaalsterkte</span><span id="accuracy-text">—</span></div>
-            <div class="accuracy-track"><div class="accuracy-fill" id="accuracy-fill"></div></div>
-          </div>
+          <div class="distance-label">Testmodus</div>
+          <div class="distance-value" style="font-size:2.5rem;">—</div>
+          <div class="distance-unit-label">GPS uitgeschakeld</div>
         </div>
         <div class="arrow-wrapper">
           <div class="arrow-ring">
             <div class="arrow-rotate" id="arrow-rotate"><div class="nav-arrow"></div></div>
           </div>
-          <div class="arrow-hint" id="compass-status">▋ Signaal zoeken...</div>
+          <div class="arrow-hint" id="compass-status">▋ Geen GPS in testmodus</div>
           <div id="compass-debug" style="font-size:0.75rem;color:var(--muted);text-align:center;letter-spacing:0.05em;line-height:1.8;margin-top:0.3rem;"></div>
         </div>
+        <button class="sim-btn" onclick="simulateArrive()">▶ Simuleer aankomst op deze locatie</button>
         <div id="arrived-wrap"></div>
       </div>`;
   }
@@ -810,53 +854,34 @@
     else renderCompassMode();
   };
 
-  // ── COMPASS UI UPDATE ──
-  function updateCompassUI() {
-    if (!activeAssignment || currentLat === null) return;
+  // ── SIMULATIE (alleen in test.html) ──
+  window.simulateArrive = async function() {
+    if (!activeAssignment) return;
     const a = activeAssignment;
-    const dist = haversine(currentLat, currentLng, a.lat, a.lng);
-    const bear = bearing(currentLat, currentLng, a.lat, a.lng);
+    await markCompleted(a.id);
 
-    const distVal = document.getElementById('dist-val');
-    const distUnit = document.getElementById('dist-unit');
-    if (distVal) {
-      if (dist >= 1000) { distVal.textContent = (dist/1000).toFixed(2); distUnit.textContent = 'kilometer'; }
-      else { distVal.textContent = Math.round(dist); distUnit.textContent = 'meter'; }
+    // Kompas: verberg kompas en knop, toon banner
+    const compassUI = document.getElementById('compass-ui');
+    if (compassUI) {
+      const distDisplay = compassUI.querySelector('.distance-display');
+      if (distDisplay) distDisplay.style.display = 'none';
+      const arrowWrapper = compassUI.querySelector('.arrow-wrapper');
+      if (arrowWrapper) arrowWrapper.style.display = 'none';
+      const simBtn = compassUI.querySelector('.sim-btn');
+      if (simBtn) simBtn.style.display = 'none';
+      const arrivedWrap = document.getElementById('arrived-wrap');
+      if (arrivedWrap) arrivedWrap.innerHTML = arrivedHTML(a, true);
     }
 
-    const arrow = document.getElementById('arrow-rotate');
-    if (arrow) {
-      const rotation = deviceHeading !== null ? bear - deviceHeading : bear;
-      const normalized = ((rotation % 360) + 540) % 360 - 180;
-      arrow.style.transform = `rotate(${normalized}deg)`;
-    }
+    // Kaart: verberg knop, toon banner
+    const mapWrap = document.getElementById('map-arrived-wrap');
+    const simBtnMap = document.getElementById('sim-btn-map');
+    if (mapWrap) mapWrap.innerHTML = arrivedHTML(a, true);
+    if (simBtnMap) simBtnMap.style.display = 'none';
+  };
 
-    // Debug info
-    const dbg = document.getElementById('compass-debug');
-    if (dbg) {
-      dbg.textContent =
-        `Doel: ${bear.toFixed(0)}°  |  Toestel: ${deviceHeading !== null ? deviceHeading.toFixed(0)+'°' : '—'}  |  Pijl: ${deviceHeading !== null ? (((bear - deviceHeading + 540) % 360) - 180).toFixed(0)+'°' : bear.toFixed(0)+'°'}`;
-    }
-
-    const status = document.getElementById('compass-status');
-    if (status) { status.textContent = deviceHeading !== null ? '✓ Stap in deze richting' : '⚠ Geen kompas — beweeg voor richting'; status.style.color = 'var(--muted)'; }
-
-    const arrivedWrap = document.getElementById('arrived-wrap');
-    if (arrivedWrap && dist <= a.radius && !compassArrived) {
-      compassArrived = true;
-      markCompleted(a.id);
-      // Verberg kompas, toon alleen de banner
-      const compassUI = document.getElementById('compass-ui');
-      if (compassUI) {
-        document.getElementById('distance-display')?.remove();
-        const arrowWrapper = document.querySelector('.arrow-wrapper');
-        if (arrowWrapper) arrowWrapper.style.display = 'none';
-        const distDisplay = compassUI.querySelector('.distance-display');
-        if (distDisplay) distDisplay.style.display = 'none';
-      }
-      arrivedWrap.innerHTML = arrivedHTML(a, true);
-    }
-  }
+  // ── COMPASS UI UPDATE (no-op in test — geen GPS) ──
+  function updateCompassUI() { /* GPS uitgeschakeld in testmodus */ }
 </script>
 </body>
 </html>
