@@ -463,7 +463,7 @@
 
     if (done.length > 0) {
       html += `<div class="section-divider"><span>Afgewerkt</span></div>`;
-      html += done.map(a => cardHTML(a, true)).join('');
+      html += done.slice().reverse().map(a => cardHTML(a, true)).join('');
     }
 
     grid.innerHTML = html;
