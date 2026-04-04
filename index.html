@@ -462,7 +462,7 @@
       return `
         <div class="question-block">
           <div class="question-label">▋ Vraag</div>
-          <div class="question-text">${a.question}</div>
+          <div class="question-text">${renderPlain(a.question)}</div>
           <div class="question-feedback show">${feedbackText}</div>
         </div>`;
     }
@@ -471,7 +471,7 @@
     return `
       <div class="question-block" id="question-block-${a.id}">
         <div class="question-label">▋ Vraag</div>
-        <div class="question-text">${a.question}</div>
+        <div class="question-text">${renderPlain(a.question)}</div>
         <div class="question-input-row">
           <input type="text" class="question-input" id="answer-input-${a.id}"
             placeholder="Uw antwoord..."
@@ -768,6 +768,15 @@
     gpsLat = null; gpsLng = null; gpsTimestamp = null; gpsSpeed = 0; gpsBearing = null;
   }
 
+  // ── PLAIN TEXT RENDERER (behoudt enters en unicode) ──
+  function renderPlain(text) {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br>');
+  }
+
   // ── MARKDOWN RENDERER ──
   function renderMd(md) {
     return md
@@ -801,9 +810,9 @@
       fetch(a.descMd)
         .then(r => r.ok ? r.text() : Promise.reject(r.status))
         .then(md => { descEl.innerHTML = renderMd(md); })
-        .catch(() => { descEl.textContent = a.desc || ''; });
+        .catch(() => { descEl.innerHTML = renderPlain(a.desc || ''); });
     } else {
-      descEl.textContent = a.desc || '';
+      descEl.innerHTML = renderPlain(a.desc || '');
     }
 
     if (a.mode === 'map') renderMapMode();
